@@ -3,6 +3,7 @@
 and the fixed sections that must survive rendering."""
 
 import argparse
+import json
 import os
 import re
 import sys
@@ -13,6 +14,9 @@ REQUIRED_FILES = [
     "AGENTS.md",
     "CLAUDE.md",
     ".gitignore",
+    ".github/copilot-commit-message-instructions.md",
+    ".github/copilot-pull-request-instructions.md",
+    ".vscode/settings.json",
     "docs/PRODUCT.md",
     "docs/ARCHITECTURE.md",
     "docs/ADR.md",
@@ -28,6 +32,8 @@ FIXED_CONTENT = {
         "agents never commit or push",
         "### Design rules",
         "ships with the tests of the part it changes",
+        "### Commit messages",
+        ".github/copilot-commit-message-instructions.md",
     ],
     "docs/ARCHITECTURE.md": [
         "### Architecture principles",
@@ -46,6 +52,19 @@ FIXED_CONTENT = {
     ],
     "CONTRIBUTING.md": [
         "includes the tests of the code it touches",
+        ".github/copilot-commit-message-instructions.md",
+    ],
+    ".github/copilot-commit-message-instructions.md": [
+        "Conventional Commits",
+        "<type>[optional scope][!]: <subject>",
+        "BREAKING CHANGE:",
+        "Co-authored-by:",
+        "English",
+    ],
+    ".github/copilot-pull-request-instructions.md": [
+        "Conventional Commits",
+        "Closes #",
+        "English",
     ],
     "CLAUDE.md": ["@AGENTS.md"],
 }
@@ -82,6 +101,59 @@ def relative_links(text):
         if target.startswith(("#", "http://", "https://", "mailto:", "}")):
             continue
         yield target.split("#", 1)[0]
+
+
+
+GENERATOR_SETTINGS = {
+    "github.copilot.chat.commitMessageGeneration.instructions":
+        ".github/copilot-commit-message-instructions.md",
+    "github.copilot.chat.pullRequestDescriptionGeneration.instructions":
+        ".github/copilot-pull-request-instructions.md",
+}
+
+
+def check_settings(root):
+    """The two generator settings must exist and point at files that exist.
+
+    Returns (errors, warnings). A setting the project deliberately rewired is a
+    warning, not a failure: the repository owns its editor configuration.
+    """
+    errors = []
+    warnings = []
+    path = os.path.join(root, ".vscode/settings.json")
+    if not os.path.isfile(path):
+        return errors, warnings
+    try:
+        with open(path, "r", encoding="utf-8") as handle:
+            settings = json.load(handle)
+    except ValueError:
+        warnings.append(
+            ".vscode/settings.json is not plain JSON (comments?), generator "
+            "settings not verified"
+        )
+        return errors, warnings
+    if not isinstance(settings, dict):
+        errors.append(".vscode/settings.json is not a JSON object")
+        return errors, warnings
+
+    for key, expected in GENERATOR_SETTINGS.items():
+        entries = settings.get(key)
+        if entries is None:
+            errors.append(".vscode/settings.json is missing %s" % key)
+            continue
+        if not isinstance(entries, list):
+            errors.append("%s must be an array of {file} or {text} objects" % key)
+            continue
+        files = [entry.get("file") for entry in entries if isinstance(entry, dict)]
+        if expected not in files:
+            warnings.append(
+                "%s does not reference %s; the generated standard is not active"
+                % (key, expected)
+            )
+        for relative in files:
+            if relative and not os.path.isfile(os.path.join(root, relative)):
+                errors.append("%s references a missing file: %s" % (key, relative))
+    return errors, warnings
 
 
 def main(argv=None):
@@ -133,6 +205,11 @@ def main(argv=None):
             problems.append("unclosed managed block %s in %s" % (block_id, name))
         for block_id in sorted(set(ends) - set(begins)):
             problems.append("orphan managed block end %s in %s" % (block_id, name))
+
+    settings_errors, settings_warnings = check_settings(root)
+    problems.extend(settings_errors)
+    for warning in settings_warnings:
+        sys.stderr.write("warning: %s\n" % warning)
 
     if problems:
         for problem in problems:

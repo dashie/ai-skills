@@ -54,6 +54,10 @@ Rules for these documents:
 - Keep them short. A document nobody reads is worse than no document.
 <!-- skill:end:agents-what-this-is -->
 
+<!-- Project documents: list project-specific documents below, one line each, using the
+     same three columns as the map above. Keep them outside the managed block so an
+     update of this file never drops them. -->
+
 <!-- skill:block:agents-engineering-principles before="## Git standards" -->
 ## Engineering principles
 

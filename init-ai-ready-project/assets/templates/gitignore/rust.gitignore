@@ -4,6 +4,4 @@
 *.pdb
 
 # Tooling
-.idea/
-.vscode/
 *.log

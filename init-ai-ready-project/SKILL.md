@@ -37,7 +37,10 @@ Exactly these files, rendered from the templates in [assets/templates](./assets/
 | `docs/ARCHITECTURE.md` | arc42 + C4 structure, components, contracts, invariants |
 | `docs/ADR.md` | Index of architecture decision records and their rationale |
 | `docs/GLOSSARY.md` | Domain language, one precise definition per term |
-| `docs/DEVELOPER-GUIDE.md` | Build, run, test, extend; includes the fixed Git standards |
+| `docs/DEVELOPER-GUIDE.md` | Build, run, test, extend; Git process and policy, linking the commit contract |
+| `.github/copilot-commit-message-instructions.md` | The commit message contract (single source), read by VS Code when drafting a message |
+| `.github/copilot-pull-request-instructions.md` | The pull request contract (title and description) |
+| `.vscode/settings.json` | Registers both instruction files for commit and pull request generation |
 | `AGENTS.md` | Agent instructions: repository layout, English-only rule, doc map (single source) |
 | `CLAUDE.md` | Two-line pointer that imports `AGENTS.md` with `@AGENTS.md` |
 | `.gitignore` | Language-appropriate ignore rules (`<variant>.gitignore` + `_common.gitignore`) |
@@ -60,7 +63,11 @@ These markers are what makes updates possible: they are the only contract that s
 "this text belongs to the skill, replace it when the skill changes". They are invisible
 in rendered Markdown and must never be removed, reworded, or hand-edited. Prose outside
 the markers is the project's: placeholders, project-specific paragraphs, and sections
-the templates fill from values.
+the templates fill from values. The two `.github/copilot-*-instructions.md` files are a
+single block each, because the skill owns them entirely.
+
+`.vscode/settings.json` is the one exception: JSON cannot carry HTML markers, so it is
+merged (missing keys added, existing keys preserved) instead of updated by block.
 
 ## Procedure
 
@@ -133,6 +140,10 @@ The script copies the templates and substitutes placeholders. It is deterministi
 same values, same bytes. It fails if a value is missing or empty, if a placeholder
 remains, or if a target file already exists (pass `--force` only when the user
 approved overwriting). Use `--dry-run` first when unsure.
+
+`.vscode/settings.json` is the exception: the two generator settings are merged into an
+existing file and reported as `merged N key(s)`, `unchanged`, or `skipped` when the
+file is not plain JSON. Existing values are never changed.
 
 ### 6. Verify
 
@@ -228,9 +239,14 @@ Two cases need a manual decision instead of a script:
 - **Templates are the source of truth.** The `AGENTS.md` engineering principles (KISS,
   modularity and decoupling, tests with every change), the `AGENTS.md` and `CLAUDE.md`
   pointer text, the architecture principles in `docs/ARCHITECTURE.md`, the design and
-  test rules in `docs/DEVELOPER-GUIDE.md`, and the Git standards are fixed text from
-  the templates; never rewrite or drop them per project. Only placeholders vary. Rules
-  live in `AGENTS.md`, never in `CLAUDE.md`.
+  test rules in `docs/DEVELOPER-GUIDE.md`, the two `.github/copilot-*-instructions.md`
+  contracts, and the Git process rules are fixed text from the templates; never
+  rewrite or drop them per project. Only placeholders vary. Rules live in `AGENTS.md`,
+  never in `CLAUDE.md`.
+- **One copy of each rule.** The commit message contract exists only in
+  `.github/copilot-commit-message-instructions.md`; every other file links to it. Never
+  copy the type table or the examples into `docs/DEVELOPER-GUIDE.md`, `AGENTS.md`, or
+  `CONTRIBUTING.md`.
 - **Fixed text is edited in the template, never in the target.** Every fixed block is
   wrapped in `<!-- skill:block:<id> -->` / `<!-- skill:end:<id> -->`; a change to the
   standard is a template edit followed by `update.py` on the repository. Never hand-edit
@@ -249,7 +265,8 @@ Two cases need a manual decision instead of a script:
 - [Intake checklist](./references/intake-checklist.md) — what to ask and why
 - [Document contracts](./references/document-contracts.md) — required content per file
 - [Template variables](./references/template-variables.md) — placeholder contract
-- [Git standards](./references/git-standards.md) — the rules embedded in the developer guide
+- [Git standards](./references/git-standards.md) — where each Git rule lives, and why the
+  commit contract is a separate file
 - [Update procedure](./references/update-procedure.md) — managed blocks, anchors, limits
 - [scaffold.py](./scripts/scaffold.py) — deterministic renderer
 - [update.py](./scripts/update.py) — bring an initialized repository to the current standard

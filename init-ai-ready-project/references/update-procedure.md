@@ -40,14 +40,26 @@ The markers are the contract. Prose outside them is never rewritten by
 | `CONTRIBUTING.md` | `contributing-before-you-start` | Preconditions before starting work |
 | `CONTRIBUTING.md` | `contributing-commit-messages` | Pointer to the commit standard |
 | `CONTRIBUTING.md` | `contributing-pull-requests` | Pull request expectations |
+| `.github/copilot-commit-message-instructions.md` | `commit-message-standard` | Whole file: the commit message contract |
+| `.github/copilot-pull-request-instructions.md` | `pull-request-standard` | Whole file: the pull request contract |
 | `docs/ARCHITECTURE.md` | `arch-principles` | Architecture principles (KISS, modularity, testability) |
 | `docs/DEVELOPER-GUIDE.md` | `devguide-test-rules` | Rules that apply to every test |
 | `docs/DEVELOPER-GUIDE.md` | `devguide-design-rules` | Design rules when adding code |
-| `docs/DEVELOPER-GUIDE.md` | `devguide-git-standards` | The authoritative Git standards |
+| `docs/DEVELOPER-GUIDE.md` | `devguide-git-standards` | Git process (commit summary, branches, pull requests, language) |
 
-Not managed: `README.md`, `.gitignore`, and every section whose body comes from a
-placeholder (`docs/PRODUCT.md`, `docs/ADR.md`, `docs/GLOSSARY.md`, and the `{{...}}`
-sections of the other files). Those are project content.
+Not managed: `README.md`, `.gitignore`, `.vscode/settings.json`, and every section
+whose body comes from a placeholder (`docs/PRODUCT.md`, `docs/ADR.md`,
+`docs/GLOSSARY.md`, and the `{{...}}` sections of the other files). Those are project
+content.
+
+`.vscode/settings.json` is JSON: it cannot carry HTML markers, and a repository
+usually already has editor settings. It is merged instead of updated — the two
+generator settings are added only when the key is absent, and existing values are
+never changed or removed. `update.py` performs the same merge.
+
+A file that is nothing but managed blocks and carries no placeholder — currently the
+two `.github/copilot-*-instructions.md` files — is created from the template when it
+is missing, because it holds no project content to preserve.
 
 ## Anchors
 
@@ -95,8 +107,20 @@ templates themselves have unbalanced markers.
 - **Unmarked removed rules survive.** A rule that disappeared from the templates can be
   removed automatically only if the repository still carries its markers. Otherwise the
   script cannot tell it apart from project prose; point it out in the report.
-- **Deliverables are never created or deleted.** A missing file is an error, not a
-  silent scaffold.
+- **Project rows inside a managed table are lost on adoption.** A doc-map row added by
+  the project inside `agents-what-this-is` disappears when that section is adopted.
+  Project-specific documents belong in the project-owned table below the block.
+- **Deliverables are created only when they hold no project content.** A file that is
+  nothing but managed blocks and no placeholder (today the two
+  `.github/copilot-*-instructions.md`) is created from the template. Anything else that
+  is missing is an error, never a silent scaffold.
+- **`.gitignore` is never edited.** An older variant may exclude `.vscode/` as a
+  directory, which defeats `!.vscode/settings.json` because Git cannot re-include a file
+  inside an excluded directory. Check with
+  `git check-ignore -v .vscode/settings.json` after the update and fix it by hand.
+- **Prose outside blocks is not synced.** Guidance the templates add outside a managed
+  block reaches only newly scaffolded repositories; for an existing one, add it by hand
+  if the report says it matters.
 
 ## Maintaining the skill
 

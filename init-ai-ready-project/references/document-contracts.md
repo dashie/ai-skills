@@ -27,8 +27,8 @@ markers is project content and must not be rewritten by an update.
 - How to propose work: issue first for anything larger than a trivial fix.
 - Branch strategy: base branch, naming (`feat/<slug>`, `fix/<slug>`, `docs/<slug>`),
   one logical change per branch.
-- Commit rules: short summary of Conventional Commits with a pointer to the
-  authoritative section in `docs/DEVELOPER-GUIDE.md`.
+- Commit rules: a three-line summary plus a pointer to
+  `.github/copilot-commit-message-instructions.md` — the pointer, never the contract.
 - Review rules: number of approvals, what reviewers check, how feedback is resolved.
 - Definition of done: tests pass, docs updated, English only, no leftover TODOs
   without an issue reference.
@@ -113,10 +113,58 @@ against C4 diagram keywords. Every diagram gets a caption and a one-sentence tak
   owning module, contracts only, KISS, tests in the same change).
 - The fixed test rules under `## Test`: every change ships with the tests of the part
   it changes, tests run per module with the others substituted by fakes.
-- **Git Standards** section: fixed, template-owned text defining concise commits,
-  Conventional Commits, allowed types and scopes, subject and body rules, examples,
-  branch naming, merge policy, and the rule that automated agents never commit or
-  push. Do not reword it per project.
+- **Git Standards** section: fixed, template-owned text defining the *process* — the
+  rule that automated agents never commit or push, a summary of concise Conventional
+  Commits with a link to the contract, branch naming and integration, the pull request
+  pointer, and the English-only rule. It must **not** restate the type table, the
+  subject and body rules, or the examples: those live in
+  `.github/copilot-commit-message-instructions.md` and a second copy drifts.
+  Do not reword it per project.
+
+## .github/copilot-commit-message-instructions.md
+
+The single source of truth for the commit message format, and the file VS Code reads
+when it drafts a commit message (registered in `.vscode/settings.json`). The whole
+file is one managed block `commit-message-standard`, with no placeholder.
+
+Must contain: format, the type table with the use of each type, scope rules, subject
+rules, body rules, footers and breaking changes, a "do not" list, worked examples, and
+a list of rejected examples with the reason. Written as directives to a writer, not as
+prose about writing.
+
+## .github/copilot-pull-request-instructions.md
+
+The pull request contract, managed block `pull-request-standard`, no placeholder.
+Contains the title format (a Conventional Commits subject, because a squash merge
+turns it into the commit subject), the required description sections (problem,
+approach, verification, scope), the required content (issue link, affected modules,
+contract changes, visible effect, screenshots), and the review rules.
+
+## .vscode/settings.json
+
+Generated, merged, and **not** managed by markers: JSON cannot carry HTML comments and
+a repository usually already has editor settings.
+
+It registers the two instruction files:
+
+```json
+"github.copilot.chat.commitMessageGeneration.instructions": [
+  { "file": ".github/copilot-commit-message-instructions.md" }
+],
+"github.copilot.chat.pullRequestDescriptionGeneration.instructions": [
+  { "file": ".github/copilot-pull-request-instructions.md" }
+]
+```
+
+Rules: add a key only when it is absent, never change or remove an existing value,
+never reformat the rest of the file beyond `json.dump(..., indent=2)`, and report which
+keys were merged. Both settings are marked Experimental in the VS Code documentation,
+which is why the instruction files are also linked from the documents above.
+
+The file must not be ignored by `.gitignore`: `.vscode/*` is excluded with
+`!.vscode/settings.json` re-included in `_common.gitignore`, and no language variant may
+exclude the `.vscode/` directory as a whole, because Git cannot re-include a file inside
+an excluded directory.
 
 ## AGENTS.md
 
@@ -134,7 +182,9 @@ Codex.
   prose, commits, comments, identifiers, file names, tests, issues, and UI strings.
 - The **Git rule**: the agent never commits or pushes; only the user approves and
   saves a change in Git. Read-only Git commands are allowed.
-- Short summary of the commit standard, pointing at `docs/DEVELOPER-GUIDE.md`.
+- Short summary of the commit standard, pointing at
+  `.github/copilot-commit-message-instructions.md` for the contract and at
+  `docs/DEVELOPER-GUIDE.md` for branch and merge policy.
 - Documentation map explaining each standard Markdown file and when to update it.
 - Working agreement: read the docs before changing behaviour, update the doc touched
   by the change, ask instead of inventing, keep changes surgical, keep the design

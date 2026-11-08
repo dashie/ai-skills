@@ -10,6 +10,8 @@ Every text in a commit message is written in English.
 
 ## Format
 
+The format is Conventional Commits:
+
 ```
 <type>[optional scope][!]: <subject>
 

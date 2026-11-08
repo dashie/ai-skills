@@ -26,6 +26,9 @@ import sys
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATES = os.path.join(os.path.dirname(SCRIPT_DIR), "assets", "templates")
 
+sys.path.insert(0, SCRIPT_DIR)
+import scaffold  # noqa: E402  (sibling script: shares the settings merge logic)
+
 BLOCK = re.compile(
     r"<!-- skill:block:(?P<id>[a-z0-9-]+)(?P<attrs>[^\n>]*)-->\n"
     r"(?P<body>.*?)"
@@ -52,11 +55,12 @@ def template_files():
     for name in sorted(os.listdir(TEMPLATES)):
         if name.endswith(".md"):
             names.append(name)
-    docs = os.path.join(TEMPLATES, "docs")
-    if os.path.isdir(docs):
-        for name in sorted(os.listdir(docs)):
-            if name.endswith(".md"):
-                names.append("docs/" + name)
+    for sub in ("docs", ".github"):
+        folder = os.path.join(TEMPLATES, sub)
+        if os.path.isdir(folder):
+            for name in sorted(os.listdir(folder)):
+                if name.endswith(".md"):
+                    names.append(sub + "/" + name)
     return names
 
 
@@ -161,6 +165,20 @@ def replace_section(text, heading, region):
         if match and len(match.group(1)) <= level:
             end = number
             break
+    # Comment lines directly above the closing heading belong to the next section:
+    # they are often block markers (<!-- BEGIN ... -->) of another tool. Leaving them
+    # inside the replaced region would silently delete them.
+    probe = end
+    while probe > start + 1:
+        stripped = lines[probe - 1].strip()
+        if stripped == "" or (stripped.startswith("<!--") and stripped.endswith("-->")):
+            probe -= 1
+        else:
+            break
+    if probe < end and any(
+        lines[index].strip().startswith("<!--") for index in range(probe, end)
+    ):
+        end = probe
     head = "".join(lines[:start])
     tail = "".join(lines[end:])
     if head and not head.endswith("\n\n"):
@@ -264,6 +282,25 @@ def drop_stale(text, keep):
             text = head.rstrip("\n") + "\n\n" + tail.lstrip("\n")
 
 
+def is_fully_managed(text):
+    """True when a template is nothing but managed blocks and blank lines.
+
+    Such a file carries no project content and no placeholder, so it can be created
+    from the template as-is when it is missing.
+    """
+    if "{{" in text:
+        return False
+    return BLOCK.sub("", text).strip() == ""
+
+
+def create_from_template(path, text):
+    parent = os.path.dirname(path)
+    if parent and not os.path.isdir(parent):
+        os.makedirs(parent)
+    with open(path, "w", encoding="utf-8", newline="\n") as handle:
+        handle.write(text)
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(
         description="Update an initialized repository to the current skill standard."
@@ -290,7 +327,15 @@ def main(argv=None):
     for name in sorted(blocks):
         path = os.path.join(root, name)
         if not os.path.isfile(path):
-            errors.append("missing file %s: run the scaffold first" % name)
+            template_text = read(os.path.join(TEMPLATES, name))
+            if not is_fully_managed(template_text):
+                errors.append("missing file %s: run the scaffold first" % name)
+                continue
+            if not args.dry_run:
+                create_from_template(path, template_text)
+            rows.append((name, "-", "created"))
+            if not args.dry_run:
+                changed.append(name)
             continue
 
         original = read(path)
@@ -309,6 +354,13 @@ def main(argv=None):
             if not args.dry_run:
                 with open(path, "w", encoding="utf-8") as handle:
                     handle.write(text)
+
+    settings_status = scaffold.render_settings(root, args.dry_run)
+    if settings_status != "unchanged":
+        verb = ("would " + settings_status) if args.dry_run else settings_status
+        print("%s %s" % (verb, scaffold.SETTINGS_DESTINATION))
+        if not args.dry_run:
+            changed.append(scaffold.SETTINGS_DESTINATION)
 
     for name, block_id, action in rows:
         if action == "unchanged":

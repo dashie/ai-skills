@@ -10,7 +10,6 @@ bin/
 
 # Tooling
 .gradle/
-.idea/
 .settings/
 .classpath
 .project
