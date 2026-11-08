@@ -48,6 +48,9 @@
 
   "customizations": {
     "vscode": {
+      // Workspace extensions, installed inside the container. Any extension that
+      // contributes Copilot Chat models (languageModelChatProviders) must be listed
+      // here, or its models never reach the model picker in this window.
       "extensions": {{VSCODE_EXTENSIONS}},
       "settings": {
         "terminal.integrated.defaultProfile.linux": "bash",

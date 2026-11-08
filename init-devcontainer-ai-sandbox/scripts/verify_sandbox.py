@@ -93,6 +93,10 @@ def static_checks(root):
             if required not in run_args:
                 problems.append("runArgs is missing %s" % required)
 
+        extensions = devcontainer.get("customizations", {}).get("vscode", {}).get("extensions", [])
+        if not isinstance(extensions, list) or not all(isinstance(item, str) and item.strip() for item in extensions):
+            problems.append("customizations.vscode.extensions must be a JSON array of extension ids")
+
         settings = devcontainer.get("customizations", {}).get("vscode", {}).get("settings", {})
         if settings.get("chat.permissions.default") not in ("autoApprove", "autopilot"):
             problems.append("chat.permissions.default must be autoApprove or autopilot for unattended chat runs")

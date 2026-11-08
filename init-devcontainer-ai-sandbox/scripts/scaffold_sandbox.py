@@ -6,6 +6,7 @@ snippets are appended between markers only when the markers are absent.
 """
 
 import argparse
+import glob
 import json
 import os
 import re
@@ -20,6 +21,20 @@ PLACEHOLDER = re.compile(r"\{\{([A-Z0-9_]+)\}\}")
 BEGIN_MARKER = "<!-- BEGIN agent-sandbox -->"
 END_MARKER = "<!-- END agent-sandbox -->"
 GITIGNORE_ENTRY = ".agent/logs/"
+
+# Optional keys accepted in the values file but not present in any template.
+OPTIONAL_KEYS = {"MODEL_PROVIDER_EXTENSIONS"}
+
+# Keys whose value is a JSON array, not plain text.
+JSON_KEYS = {"VSCODE_EXTENSIONS", "FORWARD_PORTS", "MODEL_PROVIDER_EXTENSIONS"}
+
+# Host extension directories scanned by --detect-model-providers.
+EXTENSION_DIRS = [
+    "~/.vscode/extensions",
+    "~/.vscode-insiders/extensions",
+    "~/.vscode-server/extensions",
+    "~/.vscode-remote/extensions",
+]
 
 # template -> (destination, executable)
 TARGETS = [
@@ -86,13 +101,88 @@ def load_values(values_path):
     values = {}
     for key, value in data.items():
         if isinstance(value, list):
-            value = "\n".join(str(item) for item in value)
+            value = json.dumps(value) if key in JSON_KEYS else "\n".join(str(item) for item in value)
         if not isinstance(value, str):
             fail("value for %s must be a string" % key)
         if not value.strip():
             fail("value for %s is empty" % key)
         values[key] = value
     return values
+
+
+def parse_extension_ids(raw, key):
+    try:
+        parsed = json.loads(raw)
+    except ValueError:
+        fail('%s must be a JSON array of extension ids, e.g. ["ms-python.python"]' % key)
+    if not isinstance(parsed, list) or not all(isinstance(item, str) and item.strip() for item in parsed):
+        fail('%s must be a JSON array of non-empty extension ids, e.g. ["ms-python.python"]' % key)
+    return [item.strip() for item in parsed]
+
+
+def merge_model_providers(values):
+    """Fold MODEL_PROVIDER_EXTENSIONS into VSCODE_EXTENSIONS."""
+    raw = values.pop("MODEL_PROVIDER_EXTENSIONS", None)
+    if raw is None:
+        return
+    providers = parse_extension_ids(raw, "MODEL_PROVIDER_EXTENSIONS")
+    if not providers:
+        return
+    if "VSCODE_EXTENSIONS" not in values:
+        fail("MODEL_PROVIDER_EXTENSIONS requires VSCODE_EXTENSIONS in the values file")
+    extensions = parse_extension_ids(values["VSCODE_EXTENSIONS"], "VSCODE_EXTENSIONS")
+    seen = {item.lower() for item in extensions}
+    for provider in providers:
+        if provider.lower() not in seen:
+            extensions.append(provider)
+            seen.add(provider.lower())
+    values["VSCODE_EXTENSIONS"] = json.dumps(extensions)
+
+
+def collect_model_providers(extra_dirs):
+    """Return the ids of installed extensions that add Copilot Chat models."""
+    found = []
+    seen = set()
+    for directory in EXTENSION_DIRS + list(extra_dirs or []):
+        pattern = os.path.join(os.path.expanduser(directory), "*", "package.json")
+        for path in sorted(glob.glob(pattern)):
+            try:
+                with open(path, "r", encoding="utf-8") as handle:
+                    manifest = json.load(handle)
+            except (OSError, ValueError):
+                continue
+            providers = manifest.get("contributes", {}).get("languageModelChatProviders")
+            publisher = manifest.get("publisher")
+            name = manifest.get("name")
+            if not providers or not publisher or not name:
+                continue
+            extension_id = "%s.%s" % (publisher, name)
+            if extension_id.lower() in seen:
+                continue
+            seen.add(extension_id.lower())
+            found.append(extension_id)
+    return found
+
+
+def detect_model_providers(extra_dirs):
+    print(json.dumps(collect_model_providers(extra_dirs)))
+    return 0
+
+
+def warn_missing_model_providers(values):
+    """Nudge when host model providers are absent from the container extension list."""
+    installed = {
+        item.lower()
+        for item in parse_extension_ids(values.get("VSCODE_EXTENSIONS", "[]"), "VSCODE_EXTENSIONS")
+    }
+    missing = [item for item in collect_model_providers(None) if item.lower() not in installed]
+    if missing:
+        sys.stderr.write(
+            "warning: Copilot Chat model providers installed on the host are not in "
+            "VSCODE_EXTENSIONS: %s\n"
+            "         pass them as MODEL_PROVIDER_EXTENSIONS, or their models stay "
+            "invisible inside the container\n" % ", ".join(missing)
+        )
 
 
 def render(name, values, usage):
@@ -172,22 +262,42 @@ def main(argv=None):
     parser.add_argument("--force", action="store_true", help="overwrite existing files")
     parser.add_argument("--dry-run", action="store_true", help="report, do not write")
     parser.add_argument("--list-variables", action="store_true", help="print the placeholder contract")
+    parser.add_argument(
+        "--detect-model-providers",
+        action="store_true",
+        help="print a JSON array of installed Copilot Chat model-provider extension ids",
+    )
+    parser.add_argument(
+        "--extensions-dir",
+        action="append",
+        help="extra extension directory to scan with --detect-model-providers (repeatable)",
+    )
     args = parser.parse_args(argv)
+
+    if args.detect_model_providers:
+        return detect_model_providers(args.extensions_dir)
 
     usage = build_variable_map()
 
     if args.list_variables:
         for key in sorted(usage):
             print("%-24s %s" % (key, ", ".join(usage[key])))
+        for key in sorted(OPTIONAL_KEYS):
+            print("%-24s %s" % (key, "(optional) merged into VSCODE_EXTENSIONS"))
         return 0
 
     if not args.dest or not args.values:
         parser.error("--dest and --values are required")
 
     values = load_values(args.values)
-    unknown = sorted(set(values) - set(usage))
+    unknown = sorted(set(values) - set(usage) - OPTIONAL_KEYS)
     if unknown:
         sys.stderr.write("warning: unused values: %s\n" % ", ".join(unknown))
+
+    file_keys = set(values)
+    merge_model_providers(values)
+    if "MODEL_PROVIDER_EXTENSIONS" not in file_keys:
+        warn_missing_model_providers(values)
 
     root = os.path.abspath(args.dest)
     if os.path.exists(root) and not os.path.isdir(root):

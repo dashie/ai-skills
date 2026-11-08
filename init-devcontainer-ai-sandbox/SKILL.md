@@ -22,6 +22,11 @@ The sandbox provides four guarantees:
    continue limits, plus chat-UI permission settings in `devcontainer.json`, so
    neither the CLI nor the chat UI asks for approval every couple of minutes.
 
+Copilot Chat models come from workspace extensions running **inside** the container, so
+model-provider extensions installed on the host (BYOK providers contributing
+`languageModelChatProviders`) are listed in `customizations.vscode.extensions` too —
+otherwise their models are missing from the model picker while the Copilot ones remain.
+
 ## When to Use
 
 - The user wants agent work to run unattended for a long time without approvals.
@@ -73,7 +78,16 @@ Use the `ask_user` tool for these, batching them in one form:
 - Anything the stack needs that the manifest does not reveal (database, system
   packages, private package index).
 
-Derive everything else and record it in `docs/AGENT-SANDBOX.md` under *Assumptions*.
+Derive these instead of asking:
+
+- Copilot Chat model providers already installed on the host:
+  `python3 ~/.copilot/skills/init-devcontainer-ai-sandbox/scripts/scaffold_sandbox.py --detect-model-providers`
+  returns a JSON array of ids. Pass it as `MODEL_PROVIDER_EXTENSIONS`; the script merges
+  it into `VSCODE_EXTENSIONS` so those models are available inside the container.
+- Extensions the stack obviously needs (language, linter, formatter) for
+  `VSCODE_EXTENSIONS`.
+
+Record the derivation notes in `docs/AGENT-SANDBOX.md` under *Assumptions*.
 
 ### 3. Fill the values file
 
@@ -104,7 +118,8 @@ python3 ~/.copilot/skills/init-devcontainer-ai-sandbox/scripts/verify_sandbox.py
 ```
 
 Static checks: JSONC parses, no `docker.sock`, no host home or SSH mounts,
-non-root user, `cap-drop=ALL`, `no-new-privileges`, resource limits, chat-UI autonomy
+non-root user, `cap-drop=ALL`, `no-new-privileges`, resource limits, a well-formed
+`customizations.vscode.extensions` list, chat-UI autonomy
 settings (`chat.permissions.default`, `chat.agent.maxRequests`, terminal auto-approve
 map with pattern-based refusals), the `git` shim is installed in the Dockerfile, the
 launcher is executable, the doc sections exist.

@@ -11,8 +11,9 @@ the templates themselves.
 - Empty or whitespace-only values are rejected.
 - Never place `{{` inside a value.
 - Unknown keys warn, missing keys abort.
-- JSON-valued keys (`VSCODE_EXTENSIONS`, `FORWARD_PORTS`) are inserted verbatim into
-  `devcontainer.json`: write valid JSON array text, for example
+- JSON-valued keys (`VSCODE_EXTENSIONS`, `FORWARD_PORTS`, `MODEL_PROVIDER_EXTENSIONS`)
+  accept a real JSON array in the values file or JSON array text, and are inserted
+  verbatim into `devcontainer.json`: write valid JSON array text, for example
   `["ms-python.python", "ms-python.vscode-pylance"]` and `[8000, 5432]`.
 
 ## Keys
@@ -26,6 +27,7 @@ the templates themselves.
 | `STACK_TOOLS` | stack-tools.sh | Shell commands, without shebang, that install the stack tooling at build time |
 | `POST_CREATE_EXTRA` | post-create.sh | Shell commands run once after creation (dependency install, migrations), or `echo "nothing to set up"` |
 | `VSCODE_EXTENSIONS` | devcontainer.json | JSON array of extension ids |
+| `MODEL_PROVIDER_EXTENSIONS` | devcontainer.json (merged) | Optional JSON array of Copilot Chat model-provider extension ids, appended to `VSCODE_EXTENSIONS` |
 | `FORWARD_PORTS` | devcontainer.json | JSON array of ports |
 | `MEMORY_LIMIT` | devcontainer.json, docs | Docker memory limit, e.g. `8g` |
 | `CPU_LIMIT` | devcontainer.json, docs | Docker CPU limit, e.g. `4` |
@@ -42,12 +44,30 @@ the templates themselves.
   "STACK_TOOLS": "python3 -m pip install --no-cache-dir --upgrade pip\npip install uv",
   "POST_CREATE_EXTRA": "uv sync --frozen || echo \"no lockfile yet\"",
   "VSCODE_EXTENSIONS": "[\"ms-python.python\", \"ms-python.vscode-pylance\", \"charliermarsh.ruff\"]",
+  "MODEL_PROVIDER_EXTENSIONS": "[\"Vizards.deepseek-v4-for-copilot\"]",
   "FORWARD_PORTS": "[8000]",
   "MEMORY_LIMIT": "8g",
   "CPU_LIMIT": "4",
   "SANDBOX_ASSUMPTIONS": "- Python 3.12 assumed from `pyproject.toml`.\n- Port 8000 assumed from the API default."
 }
 ```
+
+## Model providers
+
+Extensions that contribute `languageModelChatProviders` (BYOK providers such as DeepSeek
+or OpenRouter bridges) show up in the Copilot Chat model picker only when they are
+installed in the extension host that runs Copilot Chat — inside the container, in a
+dev-container window. Detect the ones installed on the host and pass them as
+`MODEL_PROVIDER_EXTENSIONS`:
+
+```bash
+python3 scripts/scaffold_sandbox.py --detect-model-providers
+# ["Vizards.deepseek-v4-for-copilot"]
+```
+
+The script appends them to `VSCODE_EXTENSIONS` without duplicates. See the
+*Third-party model providers* section of `docs/AGENT-SANDBOX.md` for the API-key and
+egress consequences.
 
 ## Derivation hints
 

@@ -132,6 +132,33 @@ The Claude and Codex harnesses are not covered by these settings: they keep thei
 provider permissions, and `--dangerously-skip-permissions` (Claude) or equivalent must
 be passed by you, not pre-configured here.
 
+### Third-party model providers
+
+Copilot Chat lists the models that its **container-side** extension host registers. An
+extension that contributes `languageModelChatProviders` (BYOK providers such as
+DeepSeek or OpenRouter bridges) registers them from the extension host where it runs,
+so installing it only on the host machine is not enough: in a Remote-Containers window
+it runs on the local side and its models never reach the picker.
+
+Install it in the container by listing its id in `customizations.vscode.extensions` of
+`.devcontainer/devcontainer.json`, then rebuilding the container. Extensions detected
+on the host at generation time are already listed there.
+
+API keys live in VS Code `SecretStorage`, which is per extension host: a key saved on
+the host is not visible inside the container. Run the provider's setup command (for
+example *DeepSeek: Set API Key*) from the container window.
+
+The provider endpoint must be reachable from the container — open egress is the
+default, so add it to any allowlist you introduce later. Providers that ship no browser
+entry point cannot run in the web extension host and stay unavailable in browser-only
+sessions.
+
+Confirm the container-side install:
+
+```bash
+code --list-extensions --show-versions
+```
+
 ### CLI
 
 `.agent/run.sh` passes these to the Copilot CLI. They are the reason the run needs no
