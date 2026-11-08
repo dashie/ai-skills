@@ -1,0 +1,154 @@
+# Document Contracts
+
+Required content for each generated file. The templates already contain the section
+skeleton; these contracts define what "meaningful" means for each section.
+
+## Managed blocks
+
+Fixed text — rules the skill owns — lives inside
+`<!-- skill:block:<id> -->` … `<!-- skill:end:<id> -->` markers. The inventory of block
+ids, the anchor attributes, and the update rules are in
+[update-procedure.md](./update-procedure.md). A generated file must contain every block
+its template declares, with balanced markers; the checker enforces it. Text outside the
+markers is project content and must not be rewritten by an update.
+
+## README.md
+
+- One-line tagline, then a short overview (3–6 sentences) aimed at a newcomer.
+- `Quick start`: prerequisites in one line, then the exact commands to install, run,
+  and test — copy-pasteable, no placeholders left.
+- `Documentation map`: table linking every file in `docs/` with one line of purpose.
+- `Status`: project maturity (prototype / alpha / beta / production) and what that
+  implies.
+- No marketing adjectives, no badges unless the user asked for them.
+
+## CONTRIBUTING.md
+
+- How to propose work: issue first for anything larger than a trivial fix.
+- Branch strategy: base branch, naming (`feat/<slug>`, `fix/<slug>`, `docs/<slug>`),
+  one logical change per branch.
+- Commit rules: short summary of Conventional Commits with a pointer to the
+  authoritative section in `docs/DEVELOPER-GUIDE.md`.
+- Review rules: number of approvals, what reviewers check, how feedback is resolved.
+- Definition of done: tests pass, docs updated, English only, no leftover TODOs
+  without an issue reference.
+- Pull request expectations: scope, description, linked issue, screenshots when UI
+  changes, and the fixed rules that a change ships with its tests, keeps modules
+  decoupled, and prefers the simplest design (KISS).
+
+## docs/PRODUCT.md
+
+- Purpose and vision: why the product exists.
+- Users and personas: who uses it, in which situation, what they need.
+- Problem statement and value proposition.
+- Scope: explicit in-scope and out-of-scope lists for the current milestone.
+- Functional behaviour: numbered requirements, each independently testable
+  (`FR-1`, `FR-2`, …), stated as observable behaviour, not implementation.
+- Business rules: domain constraints that always hold (`BR-1`, …), each with a
+  rationale when non-obvious.
+- Non-functional requirements: measurable targets (latency, availability, limits).
+- Success metrics and open questions with an owner.
+
+## docs/ARCHITECTURE.md
+
+Follow arc42, sections 1–12, in order. Keep each section short and concrete.
+
+1. Introduction and goals — top quality goals, stakeholders.
+2. Constraints — technical, organisational, conventions.
+3. Context and scope — C4 **System Context** diagram (`C4Context` Mermaid) plus the
+   external systems and actors with their inputs/outputs.
+4. Solution strategy — the handful of decisions that shape the system, followed by the
+   fixed `### Architecture principles` subsection (KISS, modular and decoupled
+   modules, testability). Never reword or remove it.
+5. Building block view — C4 **Container** and **Component** diagrams (`C4Container`,
+   `C4Component` Mermaid), one table of components with responsibilities.
+6. Runtime view — at least one end-to-end flow (sequence diagram) for the main use
+   case.
+7. Deployment view — environments, topology, and configuration sources.
+8. Cross-cutting concepts — error handling, logging/observability, security,
+   configuration, data ownership.
+9. Architecture decisions — link to `docs/ADR.md`, never duplicate rationale here.
+10. Quality requirements — quality tree and concrete scenarios.
+11. Risks and technical debt — with mitigation or a follow-up issue.
+12. Glossary — link to `docs/GLOSSARY.md`, never redefine terms here.
+
+Additionally required, as dedicated subsections:
+
+- **Component contracts**: for each component, its inputs, outputs, and guarantees.
+- **Invariants**: numbered statements (`INV-1`, `INV-2`, …) that must hold in every
+  change, each with how it is enforced or tested.
+
+Mermaid diagrams must render without external tooling; validate the syntax mentally
+against C4 diagram keywords. Every diagram gets a caption and a one-sentence takeaway.
+
+## docs/ADR.md
+
+- A short explanation of the ADR process: when a decision deserves a record, who
+  decides, and how records are superseded (never deleted).
+- `index` table: ID, title, status (`proposed` / `accepted` / `superseded by ADR-XXXX`),
+  date, one-line decision.
+- One record per decision, in the same file, in compact form: context, decision,
+  consequences, alternatives considered.
+- `ADR-0001` is always "Adopt the documentation and repository baseline produced by
+  this initialization", listing the decisions taken from assumptions.
+- Records are append-only; changing a decision means a new record.
+
+## docs/GLOSSARY.md
+
+- One table or definition list, alphabetically ordered, terms in **bold**.
+- Exactly one definition per term; no circular definitions; no synonyms ("also
+  called X" is allowed only when the alternative is used in the codebase).
+- Definitions are domain language, not implementation notes.
+- Every term that appears capitalised or in quotes in other documents must be listed.
+
+## docs/DEVELOPER-GUIDE.md
+
+- Tech stack and supported versions.
+- Prerequisites and environment setup, including how to verify the setup works.
+- Build, run, test, lint commands: exact commands, one per line, no prose inside the
+  code block, expected output summarised afterwards.
+- Repository layout: directory tree with one line per entry.
+- Extension guide: where to add a feature, a module, a test, a migration, and how to
+  wire it up, followed by the fixed `### Design rules` subsection (place code in the
+  owning module, contracts only, KISS, tests in the same change).
+- The fixed test rules under `## Test`: every change ships with the tests of the part
+  it changes, tests run per module with the others substituted by fakes.
+- **Git Standards** section: fixed, template-owned text defining concise commits,
+  Conventional Commits, allowed types and scopes, subject and body rules, examples,
+  branch naming, merge policy, and the rule that automated agents never commit or
+  push. Do not reword it per project.
+
+## AGENTS.md
+
+This is the single source of truth for agent instructions. It is read natively by
+GitHub Copilot CLI, GitHub Copilot in VS Code, the VS Code Local harness, and OpenAI
+Codex.
+
+- Fixed template text, reused deterministically: only `PROJECT_NAME` and
+  `PROJECT_PURPOSE` vary.
+- Repository purpose and the layout agents must expect.
+- The **engineering principles** section, fixed and non-negotiable: simplicity first
+  (KISS) at every level, modularity with decoupled independently tooled modules, and
+  tests shipped with every change.
+- The **language rule**: every artefact in the repository is written in English —
+  prose, commits, comments, identifiers, file names, tests, issues, and UI strings.
+- The **Git rule**: the agent never commits or pushes; only the user approves and
+  saves a change in Git. Read-only Git commands are allowed.
+- Short summary of the commit standard, pointing at `docs/DEVELOPER-GUIDE.md`.
+- Documentation map explaining each standard Markdown file and when to update it.
+- Working agreement: read the docs before changing behaviour, update the doc touched
+  by the change, ask instead of inventing, keep changes surgical, keep the design
+  simple and the modules decoupled, ship tests with the change.
+
+## CLAUDE.md
+
+A pointer file, not a second copy of the rules: two fixed paragraphs plus the import
+line `@AGENTS.md`, and only `PROJECT_NAME` varies.
+
+Why it exists: Anthropic Claude reads `CLAUDE.md` in preference to `AGENTS.md`
+(Claude Code reads `AGENTS.md` only when no `CLAUDE.md` exists, from v2.1.277). A
+`CLAUDE.md` containing `@AGENTS.md` makes Claude include the `AGENTS.md` content
+through the import, so every harness — Copilot CLI, Copilot in VS Code, VS Code
+Local, Codex, Claude — reads the same text from one file.
+
+Never write rules into `CLAUDE.md`; edit `AGENTS.md` and let the import carry them.

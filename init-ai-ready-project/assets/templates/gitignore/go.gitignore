@@ -1,0 +1,22 @@
+# Build output
+/bin/
+/dist/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test output
+*.test
+*.out
+coverage.out
+coverage.html
+
+# Vendor
+/vendor/
+
+# Tooling
+.idea/
+.vscode/
+*.log

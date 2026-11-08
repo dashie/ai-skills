@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# Build output
+dist/
+build/
+out/
+.next/
+.nuxt/
+
+# Caches
+.npm/
+.yarn/cache/
+.pnpm-store/
+.eslintcache
+*.tsbuildinfo
+
+# Logs
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Testing
+coverage/
+.nyc_output/
+playwright-report/
+test-results/

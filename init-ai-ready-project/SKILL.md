@@ -1,0 +1,256 @@
+---
+name: init-ai-ready-project
+description: 'Bootstrap a new project repository so it is ready for AI-assisted development, and bring an already initialized repository up to the current standard. Use when asked to create/initialize/scaffold/bootstrap a new project, repo, or codebase, or to set up its project documentation (README, CONTRIBUTING, docs/PRODUCT.md, docs/ARCHITECTURE.md, docs/ADR.md, docs/GLOSSARY.md, docs/DEVELOPER-GUIDE.md) and agent instructions (AGENTS.md plus a CLAUDE.md import). Also use when an existing repository already carries this baseline and its rules or standards changed and must be re-applied. Reads the user project description, interviews the user for missing information instead of inventing it, and renders deterministic templates.'
+argument-hint: '<project description> [destination path]'
+---
+
+# Initialize an AI-Ready Project
+
+Create the documentation baseline that lets a human and an AI agent work on a new
+repository without guessing: what the product is, how the system is built, which
+decisions were made, what the words mean, how to build and test, and how to
+contribute.
+
+**Everything this skill writes is in English**, including prose, headings, commit
+messages, code, comments, identifiers, and file names. The target repository has a
+single allowed language for text: English.
+
+## When to Use
+
+- The user asks to create, initialize, bootstrap, or scaffold a new project or repo.
+- The user provides a project description and wants the standard docs generated.
+- An existing repository is missing `README.md`, `CONTRIBUTING.md`, `docs/*.md`,
+  `AGENTS.md`, or `CLAUDE.md` and needs that baseline.
+- An existing repository is **already initialized with this skill** and must be brought
+  up to the current standard because the skill added, changed, or removed rules — see
+  [Updating an existing baseline](#updating-an-existing-baseline).
+
+## Deliverables
+
+Exactly these files, rendered from the templates in [assets/templates](./assets/templates):
+
+| File | Role |
+|---|---|
+| `README.md` | Entry point: purpose, quick start, documentation map |
+| `CONTRIBUTING.md` | How to contribute: branching, review, definition of done |
+| `docs/PRODUCT.md` | Purpose, users, scope, functional behaviour, business rules |
+| `docs/ARCHITECTURE.md` | arc42 + C4 structure, components, contracts, invariants |
+| `docs/ADR.md` | Index of architecture decision records and their rationale |
+| `docs/GLOSSARY.md` | Domain language, one precise definition per term |
+| `docs/DEVELOPER-GUIDE.md` | Build, run, test, extend; includes the fixed Git standards |
+| `AGENTS.md` | Agent instructions: repository layout, English-only rule, doc map (single source) |
+| `CLAUDE.md` | Two-line pointer that imports `AGENTS.md` with `@AGENTS.md` |
+| `.gitignore` | Language-appropriate ignore rules (`<variant>.gitignore` + `_common.gitignore`) |
+
+Never add other files. Never generate a different document set unless the user
+explicitly asks.
+
+### Managed blocks
+
+Every piece of fixed text the skill owns is delimited in the templates — and therefore
+in the generated files — by a pair of HTML comments:
+
+```
+<!-- skill:block:<id> [attrs] -->
+... fixed text ...
+<!-- skill:end:<id> -->
+```
+
+These markers are what makes updates possible: they are the only contract that says
+"this text belongs to the skill, replace it when the skill changes". They are invisible
+in rendered Markdown and must never be removed, reworded, or hand-edited. Prose outside
+the markers is the project's: placeholders, project-specific paragraphs, and sections
+the templates fill from values.
+
+## Procedure
+
+### 1. Inspect the destination
+
+- Resolve the destination: use the path the user gave, otherwise the current
+  working directory.
+- List existing files (`ls -a`, and `git status` if it is a repository).
+- If a deliverable already exists, do not overwrite it: report it and ask whether
+  to skip it or update it in place. A repository that already carries this baseline is
+  updated with `scripts/update.py` — see
+  [Updating an existing baseline](#updating-an-existing-baseline) — never re-rendered
+  over.
+
+### 2. Extract facts from the description
+
+Read the description the user supplied. Map it to the intake fields listed in
+[references/intake-checklist.md](./references/intake-checklist.md). Mark each field
+as **known**, **derivable**, or **missing**.
+
+- *Known*: stated by the user.
+- *Derivable*: follow unambiguously from what was stated (e.g. a Python CLI implies
+  `python` gitignore and `pytest` as the default test runner). Record it as an
+  assumption, do not ask.
+- *Missing*: must be answered by the user.
+
+### 3. Interview for what is missing
+
+Use the `ask_user` tool — never plain text questions — and batch related fields into
+one form (maximum 8 fields per round, ordered as they appear in the intake
+checklist). Ask at most two rounds: after that, fall back to explicit, visible
+assumptions.
+
+Guidelines:
+
+- Ask only `must-have` fields; fill `nice-to-have` fields with assumptions.
+- Offer sensible options with a recommended default so the user can answer quickly.
+- Never invent scope, users, business rules, components, or technology choices.
+- When the user declines to answer, write the assumption explicitly into the
+  generated document under the `### Assumptions` or `### Open questions` subsection
+  provided by the template.
+
+### 4. Prepare the values file
+
+Produce a JSON object with one value per placeholder declared in
+[references/template-variables.md](./references/template-variables.md). Values are
+Markdown fragments; use `\n` for line breaks and do not wrap values in backticks or
+code fences. Write the file outside the destination tree (e.g.
+`<session>/files/init-values.json`) and delete it after the run.
+
+To see the exact contract before writing values:
+
+```bash
+python3 ~/.copilot/skills/init-ai-ready-project/scripts/scaffold.py --list-variables
+```
+
+Content requirements per document are in
+[references/document-contracts.md](./references/document-contracts.md).
+
+### 5. Render the scaffold
+
+```bash
+python3 ~/.copilot/skills/init-ai-ready-project/scripts/scaffold.py \
+  --dest "<destination>" \
+  --values "<values.json>" \
+  --gitignore <generic|node|python|go|rust|java>
+```
+
+The script copies the templates and substitutes placeholders. It is deterministic:
+same values, same bytes. It fails if a value is missing or empty, if a placeholder
+remains, or if a target file already exists (pass `--force` only when the user
+approved overwriting). Use `--dry-run` first when unsure.
+
+### 6. Verify
+
+```bash
+python3 ~/.copilot/skills/init-ai-ready-project/scripts/check_output.py --dest "<destination>"
+```
+
+The checker fails on a missing or empty file, a leftover placeholder, a broken
+relative link, or a missing fixed section (`Git Standards` and `### Design rules` in
+the developer guide, `### Architecture principles` in the architecture document, the
+`## Engineering principles` section in `AGENTS.md`, the English-only rule and
+documentation map in `AGENTS.md`, the tests sentence in `CONTRIBUTING.md`). Fix the
+values file and re-render with `--force`; never patch the generated files by hand.
+
+The checker also fails when a managed block marker is missing or unbalanced, or when a
+block the templates declare is absent from a generated file.
+
+Additional manual check: read `docs/DEVELOPER-GUIDE.md` and `AGENTS.md` once and
+confirm nothing from the templates was reworded.
+
+### 7. Report
+
+Summarize what was created, which facts came from the user, which are assumptions,
+and which open questions remain. Explain the split: `AGENTS.md` holds the
+instructions and is read natively by GitHub Copilot CLI, GitHub Copilot in VS Code,
+the VS Code Local harness, and OpenAI Codex; `CLAUDE.md` imports it with `@AGENTS.md`
+so Anthropic Claude reads the same text. Rules are edited in `AGENTS.md` only.
+
+Do not commit, tag, or push: finish with the changed files and a proposed
+Conventional Commits message, and let the user approve and save the change in Git.
+
+Initialize Git only if the user asks (`git init -b main`); never commit unless asked.
+
+## Updating an existing baseline
+
+Use this when the repository already carries the baseline and the skill has changed:
+rules added, rules reworded, rules removed, a fixed section introduced. The project's
+own content — placeholders, values, project-specific prose — is never re-rendered, so
+the update cannot destroy facts the user supplied.
+
+Full rules and limitations: [references/update-procedure.md](./references/update-procedure.md).
+
+### 1. Inspect before touching
+
+```bash
+python3 ~/.copilot/skills/init-ai-ready-project/scripts/update.py --dest "<repo>" --dry-run
+```
+
+The dry run lists, per file: `updated` (existing managed block replaced), `adopted`
+(unmarked text matched a managed block and was wrapped in markers), `inserted` (a new
+managed block added at its anchor), `removed` (a block the templates no longer define).
+Show the list to the user before writing.
+
+### 2. Apply
+
+```bash
+python3 ~/.copilot/skills/init-ai-ready-project/scripts/update.py --dest "<repo>"
+```
+
+The script is idempotent: a second run reports `baseline OK` and changes nothing. It
+never touches `.gitignore`, never invents values, and never creates or deletes a
+deliverable — a missing deliverable is reported as an error.
+
+### 3. Verify
+
+```bash
+python3 ~/.copilot/skills/init-ai-ready-project/scripts/check_output.py --dest "<repo>"
+git --no-pager diff
+```
+
+Read the diff: it must contain only managed-block changes. If it shows project prose
+rewritten, stop and restore the file — the block boundary is wrong and must be fixed
+in the template, not patched in the repository.
+
+### 4. Report
+
+State which blocks changed, which were added, which were removed, and what the user
+must review by hand. Propose a `docs(baseline): ...` Conventional Commits message with
+the skill version or the rule names. Never commit or push.
+
+Two cases need a manual decision instead of a script:
+
+- A repository initialized **before markers existed** and whose fixed text was edited
+  by hand: `adopted` replaces whole sections by heading, so local edits inside a fixed
+  section are lost. Say so in the report.
+- A removed rule whose text is still unmarked in the repository: it cannot be detected
+  automatically. Ask the user, or point at it in the diff.
+
+## Hard Rules
+
+- **English only.** No other language appears in any generated file.
+- **No invented facts.** Missing information is asked for or declared as an assumption.
+- **Templates are the source of truth.** The `AGENTS.md` engineering principles (KISS,
+  modularity and decoupling, tests with every change), the `AGENTS.md` and `CLAUDE.md`
+  pointer text, the architecture principles in `docs/ARCHITECTURE.md`, the design and
+  test rules in `docs/DEVELOPER-GUIDE.md`, and the Git standards are fixed text from
+  the templates; never rewrite or drop them per project. Only placeholders vary. Rules
+  live in `AGENTS.md`, never in `CLAUDE.md`.
+- **Fixed text is edited in the template, never in the target.** Every fixed block is
+  wrapped in `<!-- skill:block:<id> -->` / `<!-- skill:end:<id> -->`; a change to the
+  standard is a template edit followed by `update.py` on the repository. Never hand-edit
+  a managed block in a target repository and never remove its markers.
+- **Update preserves project content.** `update.py` touches managed blocks only: it
+  never re-renders placeholders, never rewrites project prose, never edits
+  `.gitignore`, and never creates or deletes deliverables.
+- **User-owned Git history.** Never run `git commit`, `git push`, `git tag`, merge,
+  rebase, or any history rewrite, and never open or merge a pull request. Only the
+  user approves and saves a change in Git. Report the proposed commit message instead.
+- **Never overwrite silently.** Existing files require explicit approval.
+- **No filler.** Prefer short, precise, verifiable statements over marketing prose.
+
+## References
+
+- [Intake checklist](./references/intake-checklist.md) — what to ask and why
+- [Document contracts](./references/document-contracts.md) — required content per file
+- [Template variables](./references/template-variables.md) — placeholder contract
+- [Git standards](./references/git-standards.md) — the rules embedded in the developer guide
+- [Update procedure](./references/update-procedure.md) — managed blocks, anchors, limits
+- [scaffold.py](./scripts/scaffold.py) — deterministic renderer
+- [update.py](./scripts/update.py) — bring an initialized repository to the current standard
+- [check_output.py](./scripts/check_output.py) — post-render verification

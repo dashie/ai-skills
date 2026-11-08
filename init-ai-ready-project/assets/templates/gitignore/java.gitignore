@@ -1,0 +1,17 @@
+# Build output
+target/
+build/
+out/
+bin/
+*.class
+*.jar
+*.war
+*.ear
+
+# Tooling
+.gradle/
+.idea/
+.settings/
+.classpath
+.project
+*.log
