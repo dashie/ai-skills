@@ -110,16 +110,17 @@ without tests is not done, not reviewable, and not mergeable.
 
 Commit messages follow Conventional Commits and stay concise:
 
-- Format: `<type>(<scope>): <subject>`, for example
-  `feat(upload): batch metrics requests by minute`.
-- Types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`,
-  `chore`, `revert`.
-- Subject: imperative, lowercase after the type, at most 72 characters, no period.
+- Format: `<type>(<scope>): <subject>`, imperative, lowercase after the type, at most
+  72 characters, no trailing period.
 - One logical change per commit; split a change whose subject needs the word "and".
 - Breaking changes use `!` after the type or scope plus a `BREAKING CHANGE:` footer.
 - Body only when the reason is not obvious; explain why, not what.
 
-The authoritative rules, branch naming, and examples are in
+The complete contract — types, scopes, subject and body rules, footers, and examples —
+is [.github/copilot-commit-message-instructions.md](./.github/copilot-commit-message-instructions.md).
+Pull request titles and descriptions follow
+[.github/copilot-pull-request-instructions.md](./.github/copilot-pull-request-instructions.md).
+Branch naming, review, and merge policy are in
 [docs/DEVELOPER-GUIDE.md](./docs/DEVELOPER-GUIDE.md#git-standards).
 <!-- skill:end:agents-git-standards -->
 

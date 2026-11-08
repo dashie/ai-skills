@@ -23,12 +23,19 @@ TARGETS = [
     ("CONTRIBUTING.md", "CONTRIBUTING.md"),
     ("AGENTS.md", "AGENTS.md"),
     ("CLAUDE.md", "CLAUDE.md"),
+    (".github/copilot-commit-message-instructions.md", ".github/copilot-commit-message-instructions.md"),
+    (".github/copilot-pull-request-instructions.md", ".github/copilot-pull-request-instructions.md"),
     ("docs/PRODUCT.md", "docs/PRODUCT.md"),
     ("docs/ARCHITECTURE.md", "docs/ARCHITECTURE.md"),
     ("docs/ADR.md", "docs/ADR.md"),
     ("docs/GLOSSARY.md", "docs/GLOSSARY.md"),
     ("docs/DEVELOPER-GUIDE.md", "docs/DEVELOPER-GUIDE.md"),
 ]
+
+# Rendered as JSON and merged into an existing file instead of overwritten: a
+# repository almost always already carries editor settings the project must keep.
+SETTINGS_TEMPLATE = ".vscode/settings.json"
+SETTINGS_DESTINATION = ".vscode/settings.json"
 
 GITIGNORE_VARIANTS = ["generic", "node", "python", "go", "rust", "java"]
 
@@ -123,6 +130,43 @@ def render_gitignore(variant):
     return specific + "\n" + common
 
 
+def render_settings(dest_root, dry_run):
+    """Merge the settings template into an existing editor settings file.
+
+    Only missing keys are added; existing values are never changed or removed.
+    Returns a status string for the report.
+    """
+    template = json.loads(read(os.path.join(TEMPLATE_ROOT, SETTINGS_TEMPLATE)))
+    target = os.path.join(dest_root, SETTINGS_DESTINATION)
+
+    if not os.path.exists(target):
+        if not dry_run:
+            parent = os.path.dirname(target)
+            if parent and not os.path.isdir(parent):
+                os.makedirs(parent)
+            with open(target, "w", encoding="utf-8", newline="\n") as handle:
+                json.dump(template, handle, indent=2)
+                handle.write("\n")
+        return "created"
+
+    try:
+        current = json.loads(read(target))
+    except ValueError:
+        return "skipped: existing file is not plain JSON, merge it by hand"
+    if not isinstance(current, dict):
+        return "skipped: existing file is not a JSON object, merge it by hand"
+
+    missing = {key: value for key, value in template.items() if key not in current}
+    if not missing:
+        return "unchanged"
+    current.update(missing)
+    if not dry_run:
+        with open(target, "w", encoding="utf-8", newline="\n") as handle:
+            json.dump(current, handle, indent=2)
+            handle.write("\n")
+    return "merged %d key(s)" % len(missing)
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(
         description="Render the AI-ready project documentation scaffold."
@@ -195,6 +239,7 @@ def main(argv=None):
             handle.write(content)
         print("wrote %s" % target)
 
+    print("%s %s" % (render_settings(dest_root, args.dry_run), SETTINGS_DESTINATION))
     return 0
 
 

@@ -27,8 +27,11 @@
 ## Commit messages
 
 Commits follow Conventional Commits and must stay concise: one logical change per
-commit, a short imperative subject, no trailing period. The authoritative rules and
-examples are in
+commit, an imperative subject, no trailing period.
+
+The complete contract is
+[.github/copilot-commit-message-instructions.md](./.github/copilot-commit-message-instructions.md);
+read it before writing a message. Branching, review, and merge policy are in
 [docs/DEVELOPER-GUIDE.md](./docs/DEVELOPER-GUIDE.md#git-standards).
 <!-- skill:end:contributing-commit-messages -->
 

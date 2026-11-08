@@ -80,76 +80,26 @@ Fixed rules for adding anything to this project:
 <!-- skill:block:devguide-git-standards -->
 ## Git Standards
 
-These rules are mandatory for every contributor, human or AI. They are the
-authoritative definition of how work enters this repository.
+These rules are mandatory for every contributor, human or AI. They define how work
+enters this repository.
 
 Automated agents never commit or push: they prepare the change and the commit
 message, and only the user approves and saves it in Git (see
 [AGENTS.md](../AGENTS.md#git-user-approved-changes-only)).
 
-### Concise commits
+### Commit messages
 
-- One commit per logical change. If the subject needs the word "and", split it.
-- Subject line: imperative mood, lowercase after the type, no trailing period,
-  maximum 72 characters. Write `add retry to metrics upload`, not `Added retries`
-  and not `fixing stuff`.
-- The subject states the effect, not the activity: `reject empty metric batches`,
-  not `work on validation`.
-- Body only when the reason is not obvious from the diff. Explain *why*, not *what*;
-  the diff already shows the what. Wrap the body at 72 characters.
-- Never commit commented-out code, debug output, secrets, credentials, or generated
-  artefacts that the build can recreate.
-- No `wip`, `temp`, `stuff`, or `fixes` commits on a shared branch. Clean up the
-  history before requesting review.
+Every commit message follows Conventional Commits and stays concise: one logical
+change per commit, an imperative subject of at most 72 characters, no trailing
+period, a body only when the reason is not obvious.
 
-### Conventional Commits
-
-Every commit message follows the Conventional Commits format:
-
-```
-<type>[optional scope][!]: <subject>
-
-[optional body]
-
-[optional footer(s)]
-```
-
-Allowed types:
-
-| Type | Use for |
-|---|---|
-| `feat` | A new user-visible capability |
-| `fix` | A defect correction |
-| `docs` | Documentation only |
-| `style` | Formatting, whitespace, missing semicolons — no behaviour change |
-| `refactor` | Restructuring with no behaviour change |
-| `perf` | Performance improvement |
-| `test` | Adding or fixing tests |
-| `build` | Build system, dependencies, packaging |
-| `ci` | Continuous integration configuration |
-| `chore` | Maintenance that fits nowhere else |
-| `revert` | Reverting a previous commit |
-
-Scopes are optional, lowercase, and name the part of the system that changed — use a
-directory or component name from the repository layout (for example `api`, `cli`,
-`docs`). Omit the scope when the change is repository-wide.
-
-Breaking changes: append `!` after the type or scope and add a `BREAKING CHANGE:`
-footer that states what breaks and how to migrate.
-
-Footers: reference issues with `Refs: #123` or `Closes: #123`; list co-authors with
-`Co-authored-by: Name <email>`.
-
-Examples:
-
-```
-feat(upload): batch metrics requests by minute
-fix(parser): reject timestamps without timezone
-docs(adr): record storage engine choice
-refactor!: move metric types into a shared module
-
-BREAKING CHANGE: metric payloads now use `observed_at` instead of `timestamp`.
-```
+The complete contract — format, allowed types and scopes, subject and body rules,
+footers, breaking changes, and accepted and rejected examples — lives in
+[.github/copilot-commit-message-instructions.md](../.github/copilot-commit-message-instructions.md).
+That file is the single source of truth for message format: it is what an assistant
+reads when it drafts a commit message, and it is registered for that purpose in
+[.vscode/settings.json](../.vscode/settings.json). Read it before writing a message;
+do not restate it here.
 
 ### Branches and integration
 
@@ -160,6 +110,13 @@ BREAKING CHANGE: metric payloads now use `observed_at` instead of `timestamp`.
   change, with the pull request title in Conventional Commits form.
 - Long-running work uses feature flags or stacked pull requests, not long-lived
   branches.
+
+### Pull requests
+
+The title follows the commit message format, because a squash merge turns it into the
+commit subject. The description states the problem, the approach, the verification, and
+the deliberate exclusions. The contract is in
+[.github/copilot-pull-request-instructions.md](../.github/copilot-pull-request-instructions.md).
 
 ### Language
 
