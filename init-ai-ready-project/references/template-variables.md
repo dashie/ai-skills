@@ -110,7 +110,7 @@ the assumptions that were accepted instead of asked about.
 | Placeholder | Content |
 |---|---|
 | `PROJECT_NAME` | Project name |
-| `GLOSSARY_TERMS` | Table rows: `\| **Term** \| One precise definition. \|`, alphabetical |
+| `GLOSSARY_TERMS` | Table body rows only — the `\| Term \| Definition \|` header and separator are fixed template text. One row per term: `\| **Term** \| One precise definition. \|`, alphabetical, no leading/trailing blank line |
 
 ## `docs/DEVELOPER-GUIDE.md`
 

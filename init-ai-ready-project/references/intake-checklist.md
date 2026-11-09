@@ -63,7 +63,7 @@ user declines, write the gap down as an assumption instead of inventing a fact.
 | `REVIEW_RULES` | Reviewers, approvals, merge policy? | One approval, squash merge |
 | `DEFINITION_OF_DONE` | What must be true before merge? | Tests, docs, English-only, Conventional Commit message |
 | `EXTENSION_GUIDE` | How do new contributors add a feature/module? | Generic step-by-step |
-| `GLOSSARY_TERMS` | Domain terms with one precise definition each? | Derived from product description |
+| `GLOSSARY_TERMS` | Domain terms with one precise definition each? (rows only — the header is template text) | Derived from product description |
 
 ## Derivation Rules
 

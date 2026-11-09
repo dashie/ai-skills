@@ -73,6 +73,9 @@ LINK = re.compile(r"\]\(([^)\s]+)\)")
 PLACEHOLDER = re.compile(r"\{\{[A-Z0-9_]+\}\}")
 BLOCK_BEGIN = re.compile(r"<!-- skill:block:([a-z0-9-]+)[^\n>]*-->")
 BLOCK_END = re.compile(r"<!-- skill:end:([a-z0-9-]+) -->")
+TABLE_ROW = re.compile(r"^\s*\|.*\|\s*$")
+TABLE_SEPARATOR = re.compile(r"^\s*\|(\s*:?-+:?\s*\|)+\s*$")
+CODE_FENCE = re.compile(r"^\s*(```|~~~)")
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATES = os.path.join(os.path.dirname(SCRIPT_DIR), "assets", "templates")
@@ -94,6 +97,42 @@ def template_block_ids():
         if ids:
             declared[name] = ids
     return declared
+
+
+def check_tables(name, text):
+    """Every Markdown table block needs a header separator row.
+
+    Without it the renderer emits the rows as a single paragraph of literal pipes,
+    which is how a headerless table slips into a scaffold unnoticed.
+    Returns a list of problems.
+    """
+    problems = []
+    in_fence = False
+    block = []
+
+    def flush():
+        if block and not any(TABLE_SEPARATOR.match(line) for _, line in block):
+            line_number = block[0][0]
+            problems.append(
+                "%s:%d: table block has no header separator row "
+                "(Markdown renders it as text): %s"
+                % (name, line_number, block[0][1].strip()[:60])
+            )
+        del block[:]
+
+    for line_number, line in enumerate(text.splitlines(), start=1):
+        if CODE_FENCE.match(line):
+            flush()
+            in_fence = not in_fence
+            continue
+        if in_fence:
+            continue
+        if TABLE_ROW.match(line):
+            block.append((line_number, line))
+        else:
+            flush()
+    flush()
+    return problems
 
 
 def relative_links(text):
@@ -180,6 +219,7 @@ def main(argv=None):
         for match in PLACEHOLDER.findall(text):
             problems.append("unresolved placeholder %s in %s" % (match, name))
         if name.endswith(".md"):
+            problems.extend(check_tables(name, text))
             for target in relative_links(text):
                 resolved = os.path.normpath(os.path.join(os.path.dirname(path), target))
                 if not os.path.exists(resolved):

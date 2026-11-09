@@ -95,7 +95,8 @@ against C4 diagram keywords. Every diagram gets a caption and a one-sentence tak
 
 ## docs/GLOSSARY.md
 
-- One table or definition list, alphabetically ordered, terms in **bold**.
+- One table, alphabetically ordered, terms in **bold**, always under the fixed
+  `| Term | Definition |` header and separator; content rows are appended below it.
 - Exactly one definition per term; no circular definitions; no synonyms ("also
   called X" is allowed only when the alternative is used in the codebase).
 - Definitions are domain language, not implementation notes.
