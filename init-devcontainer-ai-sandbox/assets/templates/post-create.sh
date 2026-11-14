@@ -5,6 +5,10 @@ set -euo pipefail
 
 echo "==> AI sandbox setup for {{PROJECT_NAME}}"
 
+copilot_home="${COPILOT_HOME:-$HOME/.copilot}"
+skills_dir="${copilot_home}/skills"
+permissions_config="${copilot_home}/permissions-config.json"
+
 # Git identity lives only in this container; no host gitconfig is mounted.
 git config --global user.name "${SANDBOX_GIT_NAME:-AI Sandbox}"
 git config --global user.email "${SANDBOX_GIT_EMAIL:-ai-sandbox@localhost}"
@@ -24,7 +28,42 @@ node --version || true
 npm --version || true
 copilot --version || true
 
-copilot_home="${COPILOT_HOME:-$HOME/.copilot}"
+if [ -d "$skills_dir" ]; then
+  echo "==> skills available at $skills_dir (read-only)"
+else
+  cat <<EOF
+
+==> No skills directory at $skills_dir.
+    Mount your skills repository there to let the agent run its scripts; the mount
+    is defined in .devcontainer/devcontainer.json.
+EOF
+fi
+
+# The skills repository is mounted read-only at $skills_dir. The CLI pre-approves
+# running node scripts and reading that directory, so an unattended run does not
+# stop on a command or path prompt; the same allowance is set for the chat UI in
+# devcontainer.json. An existing file is never rewritten.
+if [ ! -f "$permissions_config" ]; then
+  cat > "$permissions_config" <<EOF
+{
+  "locations": {
+    "/workspace": {
+      "tool_approvals": [
+        {
+          "kind": "commands",
+          "commandIdentifiers": ["node:*"]
+        }
+      ],
+      "allowed_directories": ["$skills_dir"]
+    }
+  }
+}
+EOF
+  echo "==> pre-approved node scripts and $skills_dir in $permissions_config"
+else
+  echo "==> keeping the existing $permissions_config"
+fi
+
 if [ ! -f "${copilot_home}/config.json" ]; then
   cat <<'EOF'
 

@@ -15,6 +15,10 @@ credentials, non-root user, dropped capabilities, bounded resources.
 - Unattended runs are launched with `.agent/run.sh` from the objective in
   `.agent/goal.md`. Never edit `.devcontainer/`, `.agent/run.sh`, or the Git guard to
   gain permissions.
+- The Copilot skills are mounted read-only at `/home/dev/.copilot/skills`. Run their
+  scripts directly (`node /home/dev/.copilot/skills/<skill>/scripts/<name>.mjs`): they
+  are pre-approved on both the chat UI and the CLI, so do not ask for confirmation and
+  do not copy or edit them.
 - The network is open. Download only what the task needs and never fetch, write, or
   embed credentials.
 - Everything written in this repository is in English.

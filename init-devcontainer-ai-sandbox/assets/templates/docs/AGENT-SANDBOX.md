@@ -22,8 +22,9 @@ Guarantees of `.devcontainer/devcontainer.json` and `.devcontainer/Dockerfile`:
 | `--security-opt=no-new-privileges` | Setuid binaries cannot raise privileges |
 | No `docker.sock` mount | The agent cannot start containers or reach the host daemon |
 | Named volumes only for `~/.copilot`, `~/.npm`, `~/.cache`, `~/.local` | No host home directory, no `~/.ssh`, no `~/.aws`, no host dotfiles |
-| Bind mount of the project only | The only host data reachable is the worktree |
+| Bind mount of the project, plus a read-only bind of the skills repository | The only host data reachable is the worktree and the agent tooling |
 | `--memory={{MEMORY_LIMIT}}`, `--cpus={{CPU_LIMIT}}`, `--pids-limit=2048` | A runaway process cannot starve the host |
+| Capless `ping` plus `net.ipv4.ping_group_range` | Network diagnosis works without adding `CAP_NET_RAW` back |
 | `init: true` | Zombie processes are reaped during multi-hour runs |
 | Read-only Git shim | `commit`, `push`, `tag`, `merge`, `rebase`, `reset`, `clean`, `cherry-pick`, `revert` are refused |
 
@@ -71,7 +72,22 @@ Not guaranteed:
    git --version
    git status
    git commit -m "test"    # must be refused with exit code 97
+   ping -c 1 127.0.0.1     # must reply without sudo or extra capabilities
    ```
+
+## Network diagnosis
+
+`ping` is installed in the image on purpose: it is the first thing an agent reaches
+for when a dependency install or an API call fails. It runs without `CAP_NET_RAW` and
+without `sudo`:
+
+- the image removes the binary's file capability (`setcap -r /usr/bin/ping`), so it
+  can be executed at all under `--cap-drop=ALL`;
+- `--sysctl=net.ipv4.ping_group_range=0 2147483647` lets it use unprivileged ICMP
+  datagram sockets inside the container's network namespace.
+
+`ping` therefore proves reachability only: it says nothing about whether a port is
+open. Use `curl` for that (`curl` stays approval-gated in the chat UI).
 
 ## Long unattended run
 
@@ -105,6 +121,36 @@ Inspect the command without running it:
 bash .agent/run.sh --dry-run
 ```
 
+## Skills tooling
+
+The agent runs its automation from the skills repository, and asking for approval on
+every script invocation stops a long run. The sandbox therefore mounts that repository
+into the container and pre-approves it on both surfaces.
+
+```
+host:      ~/.copilot/skills
+container: /home/dev/.copilot/skills   (bind mount, read-only)
+```
+
+- **Read-only on purpose.** The skills are tooling, not project code: the agent must
+  not rewrite the scripts it is executing, and a broken skill must not become a
+  committed change.
+- **Chat UI.** `chat.tools.terminal.autoApprove` in `devcontainer.json` approves
+  `node` invocations of a script under a `skills/` directory:
+  `/^node\s+\S*\/skills\/\S+\.(mjs|js)(\s|$)/`. Other `node` commands still follow
+  the general policy.
+- **CLI.** `.devcontainer/post-create.sh` seeds
+  `$COPILOT_HOME/permissions-config.json` on first creation with `node:*` command
+  approvals for `/workspace` and `/home/dev/.copilot/skills` in
+  `allowed_directories`. `--allow-all` in `.agent/run.sh` covers the rest of the run.
+- **Not pre-approved.** `rm`, `curl`, `wget`, `kill`, `chmod`, `chown`, and every
+  Git history command, exactly as before. The skills mount changes nothing about the
+  Git guard.
+
+If the skills repository lives somewhere else on the host, change the `source` of the
+`/home/dev/.copilot/skills` mount in `.devcontainer/devcontainer.json`. If there is
+nothing to mount, the container still works; `post-create.sh` only prints a note.
+
 ## Autonomy options
 
 Autonomy depends on **how** the agent is invoked: the chat UI and the CLI have
@@ -121,7 +167,7 @@ and `.devcontainer/devcontainer.json` sets them in `customizations.vscode.settin
 |---|---|---|
 | `chat.permissions.default` | `autoApprove` | New sessions start without asking for every tool || `chat.agent.maxRequests` | `300` | The default (25) stops long runs early |
 | `chat.tools.terminal.enableAutoApprove` | `true` | Terminal commands run without confirmation |
-| `chat.tools.terminal.autoApprove` | map with `false` for `rm`, `curl`, `wget`, `kill`, `chmod`, `chown`, and a regex blocking `git commit/push/tag/merge/rebase/reset/clean` | Destructive and history-changing commands still ask |
+| `chat.tools.terminal.autoApprove` | map with `true` for `node` runs of a script under `skills/`, and `false` for `rm`, `curl`, `wget`, `kill`, `chmod`, `chown`, plus a regex blocking `git commit/push/tag/merge/rebase/reset/clean` | Skills scripts and ordinary work run; destructive and history-changing commands still ask |
 | `git.enableCommitSigning` | `false` | No signing key exists in the sandbox |
 
 `chat.tools.global.autoApprove: true` would approve everything at once; it explicitly

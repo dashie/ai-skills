@@ -26,6 +26,11 @@ const REQUIRED_FILES = [
 ];
 
 const FORBIDDEN_MOUNTS = ["docker.sock", "/.ssh", "/.aws", "/.config/gh", "$HOME", "localEnv:HOME"];
+
+// The one host bind mount the sandbox allows: the skills repository, read-only.
+const SKILLS_MOUNT_SOURCE = "${localEnv:HOME}/.copilot/skills";
+const SKILLS_MOUNT_TARGET = "/home/dev/.copilot/skills";
+const SKILLS_APPROVE_PATTERN = /skills/i;
 const COMMENT_BLOCK_RE = /\/\*[\s\S]*?\*\//g;
 const COMMENT_LINE_RE = /^\s*\/\/.*$/gm;
 
@@ -86,10 +91,24 @@ function staticChecks(root) {
 
     for (const entry of devcontainer.mounts || []) {
       const parsed = parseMounts(entry);
+      const isSkillsMount = parsed.target === SKILLS_MOUNT_TARGET;
+      if (isSkillsMount) {
+        if (parsed.type !== "bind") problems.push(`the skills mount must be a read-only bind mount: ${entry}`);
+        if (parsed.source !== SKILLS_MOUNT_SOURCE) {
+          problems.push(`the skills mount must come from ${SKILLS_MOUNT_SOURCE}: ${entry}`);
+        }
+        if (!String(entry).split(",").includes("readonly") && parsed.readonly === undefined) {
+          problems.push(`the skills mount must be read-only: ${entry}`);
+        }
+        continue;
+      }
       if (parsed.type !== "volume") problems.push(`mount is not a named volume: ${entry}`);
       for (const forbidden of FORBIDDEN_MOUNTS) {
         if (String(entry).includes(forbidden)) problems.push(`forbidden mount source '${forbidden}' in ${entry}`);
       }
+    }
+    if (!(devcontainer.mounts || []).some((entry) => parseMounts(entry).target === SKILLS_MOUNT_TARGET)) {
+      problems.push(`devcontainer.json does not mount the skills repository at ${SKILLS_MOUNT_TARGET}`);
     }
 
     const workspaceMount = devcontainer.workspaceMount || "";
@@ -98,7 +117,13 @@ function staticChecks(root) {
     }
 
     const runArgs = (devcontainer.runArgs || []).join(" ");
-    for (const required of ["--cap-drop=ALL", "--security-opt=no-new-privileges", "--memory=", "--cpus="]) {
+    for (const required of [
+      "--cap-drop=ALL",
+      "--security-opt=no-new-privileges",
+      "--memory=",
+      "--cpus=",
+      "net.ipv4.ping_group_range",
+    ]) {
       if (!runArgs.includes(required)) problems.push(`runArgs is missing ${required}`);
     }
 
@@ -125,6 +150,12 @@ function staticChecks(root) {
     if (!keepsRefusal) {
       problems.push("chat.tools.terminal.autoApprove keeps no pattern-based refusal (git/rm/curl)");
     }
+    const allowsSkills = Object.entries(approveMap).some(
+      ([key, value]) => value === true && key.startsWith("/") && SKILLS_APPROVE_PATTERN.test(key),
+    );
+    if (!allowsSkills) {
+      problems.push("chat.tools.terminal.autoApprove does not pre-approve the skills node scripts");
+    }
     if (settings["git.enableCommitSigning"] === true) {
       problems.push("git.enableCommitSigning must stay false inside the sandbox");
     }
@@ -142,6 +173,12 @@ function staticChecks(root) {
     }
     if (!/purge[^\n]*\bsudo\b/.test(dockerfile)) {
       problems.push("Dockerfile does not purge sudo, which dev-container base images ship");
+    }
+    if (!dockerfile.includes("iputils-ping")) {
+      problems.push("Dockerfile does not install iputils-ping");
+    }
+    if (!/setcap\s+-r\s+\/usr\/bin\/ping/.test(dockerfile)) {
+      problems.push("Dockerfile does not drop the ping file capability, so ping cannot run under --cap-drop=ALL");
     }
     if (!dockerfile.includes("userdel")) {
       problems.push("Dockerfile does not free UID 1000 before creating the sandbox user");
@@ -171,10 +208,24 @@ function staticChecks(root) {
     if (isFile(target) && !isExecutable(target)) problems.push(`${script} is not executable`);
   }
 
+  const postCreatePath = path.join(root, ".devcontainer/post-create.sh");
+  if (isFile(postCreatePath)) {
+    const postCreate = readText(postCreatePath);
+    if (!postCreate.includes("permissions-config.json")) {
+      problems.push("post-create.sh does not seed the CLI permissions-config.json");
+    }
+    if (!postCreate.includes("node:*")) {
+      problems.push("post-create.sh does not pre-approve node commands for the Copilot CLI");
+    }
+    if (!postCreate.includes("allowed_directories") || !postCreate.includes("skills")) {
+      problems.push("post-create.sh does not allow the skills directory in the CLI permissions");
+    }
+  }
+
   const docsPath = path.join(root, "docs/AGENT-SANDBOX.md");
   if (isFile(docsPath)) {
     const docs = readText(docsPath).toLowerCase();
-    for (const needle of ["read-only", "allow-all", "--no-ask-user", "docker.sock"]) {
+    for (const needle of ["read-only", "allow-all", "--no-ask-user", "docker.sock", "skills", "permissions-config.json"]) {
       if (!docs.includes(needle)) problems.push(`AGENT-SANDBOX.md does not document '${needle}'`);
     }
     const leftover = [...new Set(matchAll(PLACEHOLDER_RE, readText(docsPath)).map((match) => match[1]))].sort();
@@ -240,6 +291,17 @@ function dockerChecks(root, tag) {
   result = run(["docker", "run", "--rm", tag, "copilot", "--version"]);
   if (result.code !== 0) {
     problems.push(`copilot CLI is not available in the image: ${result.output.slice(-500)}`);
+  }
+
+  result = run([
+    "docker", "run", "--rm",
+    "--cap-drop=ALL",
+    "--security-opt=no-new-privileges",
+    "--sysctl=net.ipv4.ping_group_range=0 2147483647",
+    tag, "ping", "-c", "1", "-W", "2", "127.0.0.1",
+  ]);
+  if (result.code !== 0) {
+    problems.push(`ping does not work in the hardened container: ${result.output.slice(-500)}`);
   }
 
   return problems;

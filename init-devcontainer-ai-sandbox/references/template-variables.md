@@ -69,6 +69,19 @@ The script appends them to `VSCODE_EXTENSIONS` without duplicates. See the
 *Third-party model providers* section of `docs/AGENT-SANDBOX.md` for the API-key and
 egress consequences.
 
+## Fixed paths
+
+Not every path is a placeholder. The skills mount is fixed so every sandbox agrees on
+where the agent tooling lives:
+
+| Path | Role |
+|---|---|
+| `${localEnv:HOME}/.copilot/skills` | Host source of the skills repository, bind-mounted read-only |
+| `/home/dev/.copilot/skills` | Container target of that mount; pre-approved for `node` runs in the chat UI and seeded into the CLI permissions |
+
+Change the `source` in `.devcontainer/devcontainer.json` by hand if the skills live
+elsewhere on the host; nothing else depends on the host path.
+
 ## Derivation hints
 
 | Signal | `BASE_IMAGE` | Default `STACK_TOOLS` |

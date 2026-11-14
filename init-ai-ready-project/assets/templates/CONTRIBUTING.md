@@ -11,8 +11,9 @@
 - Open an issue before starting any change that alters behaviour, scope, or public
   interfaces. Trivial fixes (typos, broken links, formatting) can go straight to a
   pull request.
-- All text — code, comments, identifiers, documentation, commit messages, issues —
-  is written in English only.
+- All text in the repository — code, comments, identifiers, documentation, commit
+  messages, issues — is written in English only, whatever language a request, an issue,
+  or a discussion uses. Input language is never a reason to reject a request.
 <!-- skill:end:contributing-before-you-start -->
 
 ## Development workflow

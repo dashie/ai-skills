@@ -21,6 +21,9 @@ The sandbox provides four guarantees:
 4. **Repeatable long runs**: a launcher script with logging, resume, and autopilot
    continue limits, plus chat-UI permission settings in `devcontainer.json`, so
    neither the CLI nor the chat UI asks for approval every couple of minutes.
+5. **Pre-approved skills tooling**: the Copilot skills repository is bind-mounted
+   read-only at `/home/dev/.copilot/skills`, and running its node scripts is approved
+   in both the chat UI and the CLI, so a skill invocation never stalls a long run.
 
 Copilot Chat models come from workspace extensions running **inside** the container, so
 model-provider extensions installed on the host (BYOK providers contributing
@@ -40,10 +43,10 @@ otherwise their models are missing from the model picker while the Copilot ones 
 
 | File | Role |
 |---|---|
-| `.devcontainer/devcontainer.json` | Container definition, mounts, limits, chat-UI autonomy settings |
+| `.devcontainer/devcontainer.json` | Container definition, mounts (including the read-only skills mount), limits, chat-UI autonomy settings |
 | `.devcontainer/Dockerfile` | Base image, tooling, Copilot CLI (`@github/copilot`), non-root user, sudo purge |
 | `.devcontainer/stack-tools.sh` | Stack-specific build steps as plain shell, run at image build |
-| `.devcontainer/post-create.sh` | One-time setup: git identity, safe.directory, checks |
+| `.devcontainer/post-create.sh` | One-time setup: git identity, safe.directory, CLI permissions seed, checks |
 | `.devcontainer/git-guard.sh` | `git` shim installed as `/usr/local/bin/git` in the image |
 | `.agent/goal.md` | Template for the objective of an autonomous run |
 | `.agent/run.sh` | Unattended launcher: log, timeout, detach, resume |
@@ -86,6 +89,9 @@ Derive these instead of asking:
   it into `VSCODE_EXTENSIONS` so those models are available inside the container.
 - Extensions the stack obviously needs (language, linter, formatter) for
   `VSCODE_EXTENSIONS`.
+- The skills repository path: `${localEnv:HOME}/.copilot/skills` is mounted read-only
+  at `/home/dev/.copilot/skills` and pre-approved for `node` runs. Keep it unless the
+  user says the skills live elsewhere; ask only when that host path does not exist.
 
 Record the derivation notes in `docs/AGENT-SANDBOX.md` under *Assumptions*.
 
@@ -117,12 +123,15 @@ placeholders, and appends the snippets only when their markers are absent. Use
 node ~/.copilot/skills/init-devcontainer-ai-sandbox/scripts/verify-sandbox.mjs --dest "<repository root>"
 ```
 
-Static checks: JSONC parses, no `docker.sock`, no host home or SSH mounts,
-non-root user, `cap-drop=ALL`, `no-new-privileges`, resource limits, a well-formed
+Static checks: JSONC parses, no `docker.sock`, no host home or SSH mounts, the
+skills repository mounted read-only at `/home/dev/.copilot/skills`, non-root user,
+`cap-drop=ALL`, `no-new-privileges`, resource limits, a well-formed
 `customizations.vscode.extensions` list, chat-UI autonomy
 settings (`chat.permissions.default`, `chat.agent.maxRequests`, terminal auto-approve
-map with pattern-based refusals), the `git` shim is installed in the Dockerfile, the
-launcher is executable, the doc sections exist.
+map with pattern-based refusals and a `true` pattern for skills node scripts), the
+CLI permissions seed in `post-create.sh` (`node:*` plus the skills directory), the
+`git` shim installed in the Dockerfile, the launcher executable, `ping` installed and
+capless with the `ping_group_range` sysctl, the doc sections.
 
 Then, with user approval, run the real build once:
 
@@ -131,6 +140,7 @@ docker build -t <project>-sandbox -f .devcontainer/Dockerfile .devcontainer
 docker run --rm <project>-sandbox id -u            # must not be 0
 docker run --rm <project>-sandbox git commit -m x  # must exit 97
 docker run --rm <project>-sandbox sh -c 'command -v sudo'  # must find nothing
+docker run --rm <project>-sandbox ping -c 1 127.0.0.1      # must reply
 ```
 
 `verify-sandbox.mjs --docker-build` runs exactly these checks. A sandbox that has
@@ -138,14 +148,17 @@ never been built is not verified.
 
 ### 6. Report
 
-List the files created or updated, the isolation measures, the exact commands to
-start a long unattended run, and the remaining risks (open egress, model provider
-outage, quota exhaustion). Do not commit or push anything: the user owns Git history.
+List the files created or updated, the isolation measures, the pre-approved skills
+tooling, the exact commands to start a long unattended run, and the remaining risks
+(open egress, model provider outage, quota exhaustion). Do not commit or push
+anything: the user owns Git history.
 
 ## Hard Rules
 
 - **Never mount the Docker socket, the host home, `~/.ssh`, `~/.aws`, `~/.config/gh`,
-  or any host credential directory into the sandbox.** Named volumes only.
+  or any host credential directory into the sandbox.** Named volumes only, with one
+  exception: the skills repository at `~/.copilot/skills`, bind-mounted **read-only**
+  at `/home/dev/.copilot/skills` and pre-approved for `node` script runs.
 - **Never run the agent as root.** The image must define a non-root user and
   `remoteUser` must be that user.
 - **Keep the read-only Git policy.** The `git` shim is installed in the image, not

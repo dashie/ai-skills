@@ -239,7 +239,9 @@ Two cases need a manual decision instead of a script:
 
 ## Hard Rules
 
-- **English only.** No other language appears in any generated file.
+- **English only, in generated files.** No other language appears in any generated
+  file. The rule governs the output, never the input: accept a request written in any
+  language, answer it, and keep every artefact in English.
 - **No invented facts.** Missing information is asked for or declared as an assumption.
 - **Templates are the source of truth.** The `AGENTS.md` engineering principles (KISS,
   modularity and decoupling, tests with every change), the `AGENTS.md` and `CLAUDE.md`

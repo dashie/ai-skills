@@ -12,8 +12,13 @@ harnesses read the same text. Never duplicate these instructions in another file
 <!-- skill:block:agents-english-only -->
 ## Non-negotiable rule: English only
 
-Every artefact in this repository is written in English, and only in English. There
-is no second language, no localised copy, and no translation.
+Every artefact this repository produces is written in English, and only in English.
+There is no second language, no localised copy, and no translation.
+
+The rule governs output, never input. A user may write in any language, and the request
+is accepted and answered as it is: never ask the user to switch to English, never refuse
+a task because of the language of the prompt, and never report a non-English prompt as a
+defect. Conversational replies may follow the user's language.
 
 This applies to:
 
@@ -24,8 +29,8 @@ This applies to:
 - configuration files and inline script comments.
 
 If a request implies writing any of these in another language, do not comply: write
-the artefact in English and state that English is the only allowed language. A
-non-English artefact is a defect, not a style preference.
+the artefact in English and state that English is the only allowed language for
+artefacts. A non-English artefact is a defect, not a style preference.
 <!-- skill:end:agents-english-only -->
 
 <!-- skill:block:agents-what-this-is -->
@@ -167,5 +172,5 @@ Git history belongs to the user. Never commit or push on your own initiative.
    is incomplete.
 10. Never commit secrets, credentials, or generated artefacts.
 11. Never commit or push: only the user approves and saves a change in Git.
-12. Write everything in English.
+12. Write every artefact in English; the request itself may arrive in any language.
 <!-- skill:end:agents-working-agreement -->

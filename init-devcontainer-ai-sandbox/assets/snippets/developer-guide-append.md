@@ -15,7 +15,9 @@ tail -f .agent/logs/*.log
 ```
 
 The container uses a non-root user, mounts no Docker socket, no host home, and no
-credentials, drops all capabilities, and limits CPU, memory, and PIDs. Git is
+credentials, drops all capabilities, and limits CPU, memory, and PIDs. The only host
+bind mounts are the worktree and the read-only skills repository at
+`/home/dev/.copilot/skills`, so the agent runs skill scripts without a prompt. Git is
 read-only: the image ships a `git` guard that refuses history-changing subcommands,
 so the agent prepares the change and the user commits on the host.
 

@@ -19,12 +19,15 @@
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
   "workspaceFolder": "/workspace",
 
-  // Named volumes only: nothing from the host home directory is exposed.
+  // Named volumes only, plus one read-only bind mount: the single exception is the
+  // Copilot skills repository, which holds the agent tooling and no credentials.
+  // Nothing else from the host home directory is exposed.
   "mounts": [
     "source={{PROJECT_SLUG}}-copilot,target=/home/dev/.copilot,type=volume",
     "source={{PROJECT_SLUG}}-npm,target=/home/dev/.npm,type=volume",
     "source={{PROJECT_SLUG}}-cache,target=/home/dev/.cache,type=volume",
-    "source={{PROJECT_SLUG}}-local,target=/home/dev/.local,type=volume"
+    "source={{PROJECT_SLUG}}-local,target=/home/dev/.local,type=volume",
+    "source=${localEnv:HOME}/.copilot/skills,target=/home/dev/.copilot/skills,type=bind,readonly"
   ],
 
   "runArgs": [
@@ -33,6 +36,9 @@
     "--memory={{MEMORY_LIMIT}}",
     "--cpus={{CPU_LIMIT}}",
     "--pids-limit=2048",
+    // `ping` runs capless in the image, so it needs the unprivileged ICMP datagram
+    // range instead of CAP_NET_RAW; the container netns keeps it scoped locally.
+    "--sysctl=net.ipv4.ping_group_range=0 2147483647",
     "--hostname=agent-sandbox"
   ],
 
@@ -62,9 +68,13 @@
         "chat.permissions.default": "autoApprove",
         "chat.agent.maxRequests": 300,
         "chat.tools.terminal.enableAutoApprove": true,
-        // Destructive and history-changing commands still ask, so an unattended
-        // run cannot delete work or touch Git by accident.
         "chat.tools.terminal.autoApprove": {
+          // The skills repository mounted at /home/dev/.copilot/skills is agent
+          // tooling: its node scripts run without a prompt, so a long run never
+          // stalls on one.
+          "/^node\\s+\\S*\\/skills\\/\\S+\\.(mjs|js)(\\s|$)/": true,
+          // Destructive and history-changing commands still ask, so an unattended
+          // run cannot delete work or touch Git by accident.
           "rm": false,
           "rmdir": false,
           "del": false,

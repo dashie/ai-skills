@@ -17,14 +17,20 @@ RUN apt-get update \
         ca-certificates \
         curl \
         git \
+        iputils-ping \
         jq \
-        ripgrep \
+        libcap2-bin \
         less \
         nano \
+        ripgrep \
         tmux \
         unzip \
         procps \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && setcap -r /usr/bin/ping
+# `ping` keeps its file capability off: with `--cap-drop=ALL` a capability-bearing
+# binary cannot even be executed, so the sandbox ships it capless and lets it use
+# unprivileged ICMP datagram sockets instead (see runArgs.ping_group_range).
 
 # Node.js is the runtime of the GitHub Copilot CLI. The base image may already
 # provide it; install only when missing.
