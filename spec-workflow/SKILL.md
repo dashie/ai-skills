@@ -79,6 +79,11 @@ path, so install or copy the whole set together.
 6. **Ask, do not invent.** Unknown plan directory, quality command, version file, or
    ambiguous plan reference → ask the user once, then persist the answer in
    `.spec-workflow.yml` (with permission).
+7. **Use only the dedicated plan helper for plan operations it supports.** Run the
+   corresponding `spec_plan.py` command for plan lookup, status, checklist, validation,
+   numbering, and archive operations. Never substitute an improvised shell/Python command
+   or manually reproduce a helper check. If the helper is unavailable or cannot perform
+   the required operation, stop and report the blocker.
 
 ## Helper script
 
@@ -101,8 +106,8 @@ python3 <skill-root>/scripts/spec_plan.py config
 | `archive REF` | Move a `done` plan to the archive directory |
 
 Resolve `<skill-root>` from this skill's location (for a user-scope install it is
-`~/.copilot/skills/spec-workflow`). If the script is unavailable, reproduce its checks
-manually — but never skip the status gate.
+`~/.copilot/skills/spec-workflow`). If the script is unavailable or cannot perform a
+required operation, stop and report the blocker; do not reproduce its checks manually.
 
 ## Project profile
 

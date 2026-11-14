@@ -178,6 +178,10 @@ next command — `spec-implement <NNN>`. Stop there.
 
 ## Guardrails
 
+- Use `spec_plan.py` for every supported plan operation, including numbering, lookup,
+  duplicate checks, validation, and status changes. Do not invent shell/Python commands or
+  manually reproduce a helper check; if the helper is unavailable or lacks the required
+  operation, stop and report the blocker.
 - Write only inside the plan directory. Never touch source, tests, configuration, or other
   documentation while planning.
 - Never change a plan's `status` by hand; only `spec_plan.py set-status` may move it.

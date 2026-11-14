@@ -193,6 +193,10 @@ summary of what the code does.
 
 ## Guardrails
 
+- Use `spec_plan.py` for every supported plan operation, including gate validation,
+  status checks, and status changes. Do not invent shell/Python commands or manually
+  reproduce a helper check; if the helper is unavailable or lacks the required operation,
+  stop and report the blocker.
 - Review only. Never re-implement a blocker, never rewrite the plan, never archive.
 - Never mark `reviewed` without a fresh PASS backed by executed commands.
 - Never approve out-of-scope changes retroactively — require the user's explicit decision.

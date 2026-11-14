@@ -140,6 +140,10 @@ Status `in-progress` means someone started before. Then:
 
 ## Guardrails
 
+- Use `spec_plan.py` for every supported plan operation, including gate validation,
+  checklist/progress checks, and status changes. Do not invent shell/Python commands or
+  manually reproduce a helper check; if the helper is unavailable or lacks the required
+  operation, stop and report the blocker.
 - Never create plans, change plan intent, or bump versions.
 - Never review, score, or close the work; that is a separate phase with its own gate.
 - Never run `git commit`, `git push`, or any history-changing Git command unless the profile

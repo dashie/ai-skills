@@ -113,6 +113,10 @@ Beyond the generic steps:
 
 ## Guardrails
 
+- Use `spec_plan.py` for every supported plan operation, including gate validation,
+  checklist/progress checks, and status/archive changes. Do not invent shell/Python
+  commands or manually reproduce a helper check; if the helper is unavailable or lacks the
+  required operation, stop and report the blocker.
 - Never close without a PASS, never close with unticked checklist items, never close with a
   red quality suite.
 - Never alter the plan's goals, steps, notes, or verdicts while closing; the file is a record.
