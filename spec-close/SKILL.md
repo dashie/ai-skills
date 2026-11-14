@@ -18,7 +18,7 @@ spec-review ──reviewed + PASS──► spec-close ──done──► archiv
 ## 0. Pre-flight — the gate
 
 ```
-python3 <skill-root>/scripts/spec_plan.py validate-for close <REF>
+node <skill-root>/scripts/spec-plan.mjs validate-for close <REF>
 ```
 
 This requires status `reviewed`, a valid plan structure, and a **latest** `**Verdict**: PASS`
@@ -36,7 +36,7 @@ The verdict may be stale — code may have changed after the review.
    `git diff --stat` since the review date. Commitments made after the review invalidate it;
    if the code changed materially, stop and ask for a new `spec-review`.
 2. Run the full quality suite once more. A PASS followed by a red suite is not closeable.
-3. `spec_plan.py checklist <REF>` must report every item ticked (exit 0).
+3. `spec-plan.mjs checklist <REF>` must report every item ticked (exit 0).
 4. Skim the plan's goals one last time: nothing obviously unmet in the diff.
 
 ## 2. Version bump
@@ -69,8 +69,8 @@ Do not bump when the repository is unversioned — report `n/a`.
 ## 4. Mark done and archive
 
 ```
-python3 <skill-root>/scripts/spec_plan.py set-status <REF> done
-python3 <skill-root>/scripts/spec_plan.py archive <REF>
+node <skill-root>/scripts/spec-plan.mjs set-status <REF> done
+node <skill-root>/scripts/spec-plan.mjs archive <REF>
 ```
 
 Archive is only legal from `done`; if the script refuses, fix the status first, never the
@@ -113,8 +113,8 @@ Beyond the generic steps:
 
 ## Guardrails
 
-- Use `spec_plan.py` for every supported plan operation, including gate validation,
-  checklist/progress checks, and status/archive changes. Do not invent shell/Python
+- Use `spec-plan.mjs` for every supported plan operation, including gate validation,
+  checklist/progress checks, and status/archive changes. Do not invent ad-hoc shell
   commands or manually reproduce a helper check; if the helper is unavailable or lacks the
   required operation, stop and report the blocker.
 - Never close without a PASS, never close with unticked checklist items, never close with a

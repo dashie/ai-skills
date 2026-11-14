@@ -22,7 +22,7 @@ Each round appends its own `## Review Notes`. Only the **latest** verdict counts
 ## 0. Pre-flight — gate
 
 ```
-python3 <skill-root>/scripts/spec_plan.py validate-for review <REF>
+node <skill-root>/scripts/spec-plan.mjs validate-for review <REF>
 ```
 
 Requires status `in-progress`. On failure: stop, report, and name the allowed command.
@@ -180,7 +180,7 @@ Rules for the block:
 
 ## 8. Update the status
 
-- **PASS** → `python3 <skill-root>/scripts/spec_plan.py set-status <REF> reviewed`, then tell
+- **PASS** → `node <skill-root>/scripts/spec-plan.mjs set-status <REF> reviewed`, then tell
   the user to run `spec-close <NNN>`.
 - **NEEDS WORK** → leave the status as `in-progress` (do **not** change it), and tell the user
   to run `spec-implement <NNN>` to address the findings, then `spec-review <NNN>` again.
@@ -193,8 +193,8 @@ summary of what the code does.
 
 ## Guardrails
 
-- Use `spec_plan.py` for every supported plan operation, including gate validation,
-  status checks, and status changes. Do not invent shell/Python commands or manually
+- Use `spec-plan.mjs` for every supported plan operation, including gate validation,
+  status checks, and status changes. Do not invent ad-hoc shell commands or manually
   reproduce a helper check; if the helper is unavailable or lacks the required operation,
   stop and report the blocker.
 - Review only. Never re-implement a blocker, never rewrite the plan, never archive.

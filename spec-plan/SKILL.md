@@ -30,7 +30,7 @@ Then read the canonical plan format:
 Get the next number with the helper script:
 
 ```
-python3 <skill-root>/scripts/spec_plan.py next-number
+node <skill-root>/scripts/spec-plan.mjs next-number
 ```
 
 `<skill-root>` is the `spec-workflow` skill directory (`~/.copilot/skills/spec-workflow` for
@@ -74,7 +74,7 @@ options they gain, lose, or see change.
 
 ## 3. Duplicate and dependency check
 
-1. `spec_plan.py list --status all` — read titles and types.
+1. `spec-plan.mjs list --status all` — read titles and types.
 2. If an existing plan covers the same change, show it and ask: extend it, supersede it, or
    cancel the new plan. **Do not create a duplicate.**
 3. If an existing open plan is a prerequisite, record its number in `depends_on`. A
@@ -156,7 +156,7 @@ remediation choice, and residual risk.
 ## 7. Validate
 
 ```
-python3 <skill-root>/scripts/spec_plan.py validate <NNN>
+node <skill-root>/scripts/spec-plan.mjs validate <NNN>
 ```
 
 Fix every `ERROR`. For each `WARN`, either fix it or decide consciously not to — a warning
@@ -178,13 +178,13 @@ next command — `spec-implement <NNN>`. Stop there.
 
 ## Guardrails
 
-- Use `spec_plan.py` for every supported plan operation, including numbering, lookup,
-  duplicate checks, validation, and status changes. Do not invent shell/Python commands or
+- Use `spec-plan.mjs` for every supported plan operation, including numbering, lookup,
+  duplicate checks, validation, and status changes. Do not invent ad-hoc shell commands or
   manually reproduce a helper check; if the helper is unavailable or lacks the required
   operation, stop and report the blocker.
 - Write only inside the plan directory. Never touch source, tests, configuration, or other
   documentation while planning.
-- Never change a plan's `status` by hand; only `spec_plan.py set-status` may move it.
+- Never change a plan's `status` by hand; only `spec-plan.mjs set-status` may move it.
 - Never implement "just the easy part", never prototype code in the plan, and never answer a
   design question with "it depends" left unresolved.
 - If the user asks for code during this phase, refuse and point to `spec-implement`.

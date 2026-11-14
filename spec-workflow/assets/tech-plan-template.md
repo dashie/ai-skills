@@ -15,8 +15,8 @@ branch_recommended: false
 Template notes (delete this block when the plan is written):
 
 - Frontmatter fields `title`, `date`, `status`, `type`, `impact`, and `area` are required
-  by `spec_plan.py validate`. Keep `status: draft` when creating the plan; only
-  `spec_plan.py set-status` may change it.
+  by `spec-plan.mjs validate`. Keep `status: draft` when creating the plan; only
+  `spec-plan.mjs set-status` may change it.
 - Required body sections: Summary, Why, Goals, Affected modules, Proposed solution,
   Implementation checklist. Keep the exact heading text.
 - Goals use plain `- ` bullets. Checkboxes `- [ ]` belong to Open questions and the

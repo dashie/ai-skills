@@ -1,8 +1,8 @@
 # Template Variables
 
 The values file is a single JSON object mapping every placeholder to a Markdown
-fragment. The renderer is `scripts/scaffold.py`; run
-`python3 scripts/scaffold.py --list-variables` to print this contract from the
+fragment. The renderer is `scripts/scaffold.mjs`; run
+`node scripts/scaffold.mjs --list-variables` to print this contract from the
 templates themselves.
 
 ## Rules

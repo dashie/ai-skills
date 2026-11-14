@@ -80,19 +80,22 @@ path, so install or copy the whole set together.
    ambiguous plan reference → ask the user once, then persist the answer in
    `.spec-workflow.yml` (with permission).
 7. **Use only the dedicated plan helper for plan operations it supports.** Run the
-   corresponding `spec_plan.py` command for plan lookup, status, checklist, validation,
-   numbering, and archive operations. Never substitute an improvised shell/Python command
+   corresponding `spec-plan.mjs` command for plan lookup, status, checklist, validation,
+   numbering, and archive operations. Never substitute an improvised shell command
    or manually reproduce a helper check. If the helper is unavailable or cannot perform
    the required operation, stop and report the blocker.
 
 ## Helper script
 
-`scripts/spec_plan.py` ships with this skill. It is dependency-free Python 3.9+ and reads
+`scripts/spec-plan.mjs` ships with this skill. It is dependency-free Node.js 22+ and reads
 the profile from the repository root discovered from the current working directory:
 
 ```
-python3 <skill-root>/scripts/spec_plan.py config
+node <skill-root>/scripts/spec-plan.mjs config
 ```
+
+The script imports the shared helpers from `lib/` at the skills repository root, so
+every skill directory must stay next to `lib/`; do not copy a skill directory on its own.
 
 | Command | Purpose |
 |---|---|
@@ -129,7 +132,7 @@ The canonical plan format lives in
 
 ### Report status
 
-1. Run `spec_plan.py list`. If the user named a plan, run `show <ref>` and `checklist <ref>`.
+1. Run `spec-plan.mjs list`. If the user named a plan, run `show <ref>` and `checklist <ref>`.
 2. Map each plan to its next command:
 
 | Status | Next command |

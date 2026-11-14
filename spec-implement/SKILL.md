@@ -13,7 +13,7 @@ resume point at any moment.
 ## 0. Pre-flight — gate before touching anything
 
 ```
-python3 <skill-root>/scripts/spec_plan.py validate-for implement <REF>
+node <skill-root>/scripts/spec-plan.mjs validate-for implement <REF>
 ```
 
 The gate accepts `draft` (new run) and `in-progress` (resume), rejects everything else, and
@@ -33,7 +33,7 @@ commands from `.spec-workflow.yml` per
   change.
 - Resolve every open question that the plan left for implementation time: answer it from the
   code when possible, otherwise ask the user. Tick the box and record the decision inline.
-- `spec_plan.py checklist <REF>` lists what remains when resuming.
+- `spec-plan.mjs checklist <REF>` lists what remains when resuming.
 
 If the plan contradicts the code (a function was removed, an API changed), stop and report —
 do not silently re-plan.
@@ -41,7 +41,7 @@ do not silently re-plan.
 ## 2. Mark the plan in progress
 
 ```
-python3 <skill-root>/scripts/spec_plan.py set-status <REF> in-progress
+node <skill-root>/scripts/spec-plan.mjs set-status <REF> in-progress
 ```
 
 The script also moves the file out of `draft/` when the repository uses that split. Verify
@@ -104,13 +104,13 @@ user to revise it with `spec-plan`.
 
 ## 6. Final gate
 
-1. `spec_plan.py checklist <REF>` reports every item ticked (exit 0).
+1. `spec-plan.mjs checklist <REF>` reports every item ticked (exit 0).
 2. The full quality suite from the profile passes — run it, paste the command and the
    outcome, do not infer.
 3. Documentation listed under Affected modules is actually updated — including
    `docs/USER-GUIDE.md` whenever the change is user-visible or touches a configuration
    option, or a recorded reason why no guide change was needed.
-4. `python3 <skill-root>/scripts/spec_plan.py validate <REF> --strict` exits 0.
+4. `node <skill-root>/scripts/spec-plan.mjs validate <REF> --strict` exits 0.
 
 If any item fails, it is not done. Never tick the closing items to satisfy the gate.
 
@@ -140,8 +140,8 @@ Status `in-progress` means someone started before. Then:
 
 ## Guardrails
 
-- Use `spec_plan.py` for every supported plan operation, including gate validation,
-  checklist/progress checks, and status changes. Do not invent shell/Python commands or
+- Use `spec-plan.mjs` for every supported plan operation, including gate validation,
+  checklist/progress checks, and status changes. Do not invent ad-hoc shell commands or
   manually reproduce a helper check; if the helper is unavailable or lacks the required
   operation, stop and report the blocker.
 - Never create plans, change plan intent, or bump versions.

@@ -23,7 +23,7 @@ file, by:
 ```
 
 The markers are the contract. Prose outside them is never rewritten by
-`scripts/update.py`.
+`scripts/update.mjs`.
 
 ## Managed blocks
 
@@ -56,7 +56,7 @@ are project content.
 `.vscode/settings.json` is JSON: it cannot carry HTML markers, and a repository
 usually already has editor settings. It is merged instead of updated — the two
 generator settings are added only when the key is absent, and existing values are
-never changed or removed. `update.py` performs the same merge.
+never changed or removed. `update.mjs` performs the same merge.
 
 A file that is nothing but managed blocks and carries no placeholder — currently the
 two `.github/copilot-*-instructions.md` files — is created from the template when it
@@ -80,10 +80,10 @@ instead of being duplicated.
 ## Applying an update
 
 ```bash
-update.py --dest "<repo>" --dry-run   # inspect
-update.py --dest "<repo>"             # write
-check_output.py --dest "<repo>"       # verify
-git --no-pager diff                   # review
+node scripts/update.mjs --dest "<repo>" --dry-run   # inspect
+node scripts/update.mjs --dest "<repo>"             # write
+node scripts/check-output.mjs --dest "<repo>"       # verify
+git --no-pager diff                                 # review
 ```
 
 Reported actions:
@@ -117,7 +117,7 @@ templates themselves have unbalanced markers.
   is missing is an error, never a silent scaffold — in particular `docs/USER-GUIDE.md`,
   which a repository initialized before it existed does not have: copy it from
   `assets/templates/docs/USER-GUIDE.md`, fill in its three placeholders, then re-run
-  `update.py`.
+  `update.mjs`.
 - **`.gitignore` is never edited.** An older variant may exclude `.vscode/` as a
   directory, which defeats `!.vscode/settings.json` because Git cannot re-include a file
   inside an excluded directory. Check with
@@ -136,7 +136,7 @@ When adding, rewording, or dropping a rule:
 2. Never put a `{{PLACEHOLDER}}` inside a managed block: an update would copy the
    placeholder into the repository.
 3. Update [document-contracts.md](./document-contracts.md) and the `FIXED_CONTENT`
-   expectations in `scripts/check_output.py`.
-4. Verify both paths: `scaffold.py` on an empty directory, and `update.py` on a
-   repository rendered by the previous template set. Both must pass `check_output.py`,
-   and a second `update.py` run must report `baseline OK`.
+   expectations in `scripts/check-output.mjs`.
+4. Verify both paths: `scaffold.mjs` on an empty directory, and `update.mjs` on a
+   repository rendered by the previous template set. Both must pass `check-output.mjs`,
+   and a second `update.mjs` run must report `baseline OK`.

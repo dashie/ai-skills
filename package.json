@@ -1,0 +1,21 @@
+{
+  "name": "copilot-skills",
+  "version": "2.0.0",
+  "private": true,
+  "description": "GitHub Copilot skills: project setup, AI development sandbox, and a spec-driven workflow.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "bin": {
+    "skill-scaffold": "./init-ai-ready-project/scripts/scaffold.mjs",
+    "skill-update": "./init-ai-ready-project/scripts/update.mjs",
+    "skill-check-output": "./init-ai-ready-project/scripts/check-output.mjs",
+    "sandbox-scaffold": "./init-devcontainer-ai-sandbox/scripts/scaffold-sandbox.mjs",
+    "sandbox-verify": "./init-devcontainer-ai-sandbox/scripts/verify-sandbox.mjs",
+    "spec-plan": "./spec-workflow/scripts/spec-plan.mjs"
+  },
+  "scripts": {
+    "smoke": "node scripts/smoke.mjs"
+  }
+}

@@ -41,7 +41,7 @@ statuses: [draft, in-progress, reviewed, done]
 required_fields: [title, date, status, type, impact, area]
 required_sections: [Summary, Why, Goals, Affected modules, Proposed solution, Implementation checklist]
 
-# Read by the phase skills, not by spec_plan.py.
+# Read by the phase skills, not by spec-plan.mjs.
 quality:
   all: "npm run check"
   tests: "npm test"
@@ -69,7 +69,7 @@ git:
   commit_convention: conventional  # conventional | free
 ```
 
-`spec_plan.py` reads only the top-level keys (`plan_dir`, `draft_dir`, `archive_dir`,
+`spec-plan.mjs` reads only the top-level keys (`plan_dir`, `draft_dir`, `archive_dir`,
 `number_width`, `filename_prefix`, `statuses`, `required_fields`, `required_sections`).
 Every other block is guidance for the phase skills and must be honoured manually. Keep the
 file flat — the helper uses a deliberately small YAML subset (scalars, inline lists,

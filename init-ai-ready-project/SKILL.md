@@ -79,7 +79,7 @@ merged (missing keys added, existing keys preserved) instead of updated by block
 - List existing files (`ls -a`, and `git status` if it is a repository).
 - If a deliverable already exists, do not overwrite it: report it and ask whether
   to skip it or update it in place. A repository that already carries this baseline is
-  updated with `scripts/update.py` — see
+  updated with `scripts/update.mjs` — see
   [Updating an existing baseline](#updating-an-existing-baseline) — never re-rendered
   over.
 
@@ -122,7 +122,7 @@ code fences. Write the file outside the destination tree (e.g.
 To see the exact contract before writing values:
 
 ```bash
-python3 ~/.copilot/skills/init-ai-ready-project/scripts/scaffold.py --list-variables
+node ~/.copilot/skills/init-ai-ready-project/scripts/scaffold.mjs --list-variables
 ```
 
 Content requirements per document are in
@@ -131,7 +131,7 @@ Content requirements per document are in
 ### 5. Render the scaffold
 
 ```bash
-python3 ~/.copilot/skills/init-ai-ready-project/scripts/scaffold.py \
+node ~/.copilot/skills/init-ai-ready-project/scripts/scaffold.mjs \
   --dest "<destination>" \
   --values "<values.json>" \
   --gitignore <generic|node|python|go|rust|java>
@@ -149,7 +149,7 @@ file is not plain JSON. Existing values are never changed.
 ### 6. Verify
 
 ```bash
-python3 ~/.copilot/skills/init-ai-ready-project/scripts/check_output.py --dest "<destination>"
+node ~/.copilot/skills/init-ai-ready-project/scripts/check-output.mjs --dest "<destination>"
 ```
 
 The checker fails on a missing or empty file, a leftover placeholder, a broken
@@ -194,7 +194,7 @@ Full rules and limitations: [references/update-procedure.md](./references/update
 ### 1. Inspect before touching
 
 ```bash
-python3 ~/.copilot/skills/init-ai-ready-project/scripts/update.py --dest "<repo>" --dry-run
+node ~/.copilot/skills/init-ai-ready-project/scripts/update.mjs --dest "<repo>" --dry-run
 ```
 
 The dry run lists, per file: `updated` (existing managed block replaced), `adopted`
@@ -205,7 +205,7 @@ Show the list to the user before writing.
 ### 2. Apply
 
 ```bash
-python3 ~/.copilot/skills/init-ai-ready-project/scripts/update.py --dest "<repo>"
+node ~/.copilot/skills/init-ai-ready-project/scripts/update.mjs --dest "<repo>"
 ```
 
 The script is idempotent: a second run reports `baseline OK` and changes nothing. It
@@ -215,7 +215,7 @@ deliverable — a missing deliverable is reported as an error.
 ### 3. Verify
 
 ```bash
-python3 ~/.copilot/skills/init-ai-ready-project/scripts/check_output.py --dest "<repo>"
+node ~/.copilot/skills/init-ai-ready-project/scripts/check-output.mjs --dest "<repo>"
 git --no-pager diff
 ```
 
@@ -260,9 +260,9 @@ Two cases need a manual decision instead of a script:
   change; the managed block `userguide-currency` carries that rule into every repository.
 - **Fixed text is edited in the template, never in the target.** Every fixed block is
   wrapped in `<!-- skill:block:<id> -->` / `<!-- skill:end:<id> -->`; a change to the
-  standard is a template edit followed by `update.py` on the repository. Never hand-edit
+  standard is a template edit followed by `update.mjs` on the repository. Never hand-edit
   a managed block in a target repository and never remove its markers.
-- **Update preserves project content.** `update.py` touches managed blocks only: it
+- **Update preserves project content.** `update.mjs` touches managed blocks only: it
   never re-renders placeholders, never rewrites project prose, never edits
   `.gitignore`, and never creates or deletes deliverables.
 - **User-owned Git history.** Never run `git commit`, `git push`, `git tag`, merge,
@@ -279,6 +279,9 @@ Two cases need a manual decision instead of a script:
 - [Git standards](./references/git-standards.md) — where each Git rule lives, and why the
   commit contract is a separate file
 - [Update procedure](./references/update-procedure.md) — managed blocks, anchors, limits
-- [scaffold.py](./scripts/scaffold.py) — deterministic renderer
-- [update.py](./scripts/update.py) — bring an initialized repository to the current standard
-- [check_output.py](./scripts/check_output.py) — post-render verification
+- [scaffold.mjs](./scripts/scaffold.mjs) — deterministic renderer
+- [update.mjs](./scripts/update.mjs) — bring an initialized repository to the current standard
+- [check-output.mjs](./scripts/check-output.mjs) — post-render verification
+
+All three scripts import the shared helpers from `lib/` at the skills repository
+root, so run them from a full checkout: `node <skill-root>/scripts/<name>.mjs`.

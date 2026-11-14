@@ -81,7 +81,7 @@ Use the `ask_user` tool for these, batching them in one form:
 Derive these instead of asking:
 
 - Copilot Chat model providers already installed on the host:
-  `python3 ~/.copilot/skills/init-devcontainer-ai-sandbox/scripts/scaffold_sandbox.py --detect-model-providers`
+  `node ~/.copilot/skills/init-devcontainer-ai-sandbox/scripts/scaffold-sandbox.mjs --detect-model-providers`
   returns a JSON array of ids. Pass it as `MODEL_PROVIDER_EXTENSIONS`; the script merges
   it into `VSCODE_EXTENSIONS` so those models are available inside the container.
 - Extensions the stack obviously needs (language, linter, formatter) for
@@ -92,7 +92,7 @@ Record the derivation notes in `docs/AGENT-SANDBOX.md` under *Assumptions*.
 ### 3. Fill the values file
 
 ```bash
-python3 ~/.copilot/skills/init-devcontainer-ai-sandbox/scripts/scaffold_sandbox.py --list-variables
+node ~/.copilot/skills/init-devcontainer-ai-sandbox/scripts/scaffold-sandbox.mjs --list-variables
 ```
 
 Write a JSON object with one value per placeholder; see
@@ -102,7 +102,7 @@ values file outside the repository (for example `<session>/files/sandbox-values.
 ### 4. Render
 
 ```bash
-python3 ~/.copilot/skills/init-devcontainer-ai-sandbox/scripts/scaffold_sandbox.py \
+node ~/.copilot/skills/init-devcontainer-ai-sandbox/scripts/scaffold-sandbox.mjs \
   --dest "<repository root>" \
   --values "<values.json>"
 ```
@@ -114,7 +114,7 @@ placeholders, and appends the snippets only when their markers are absent. Use
 ### 5. Verify
 
 ```bash
-python3 ~/.copilot/skills/init-devcontainer-ai-sandbox/scripts/verify_sandbox.py --dest "<repository root>"
+node ~/.copilot/skills/init-devcontainer-ai-sandbox/scripts/verify-sandbox.mjs --dest "<repository root>"
 ```
 
 Static checks: JSONC parses, no `docker.sock`, no host home or SSH mounts,
@@ -133,7 +133,7 @@ docker run --rm <project>-sandbox git commit -m x  # must exit 97
 docker run --rm <project>-sandbox sh -c 'command -v sudo'  # must find nothing
 ```
 
-`verify_sandbox.py --docker-build` runs exactly these checks. A sandbox that has
+`verify-sandbox.mjs --docker-build` runs exactly these checks. A sandbox that has
 never been built is not verified.
 
 ### 6. Report
@@ -159,5 +159,8 @@ outage, quota exhaustion). Do not commit or push anything: the user owns Git his
 - [Container hardening](./references/container-hardening.md) — every isolation control and why
 - [Autonomy flags](./references/autonomy-flags.md) — verified Copilot CLI options for unattended runs
 - [Template variables](./references/template-variables.md) — placeholder contract
-- [scaffold_sandbox.py](./scripts/scaffold_sandbox.py) — renderer
-- [verify_sandbox.py](./scripts/verify_sandbox.py) — checks
+- [scaffold-sandbox.mjs](./scripts/scaffold-sandbox.mjs) — renderer
+- [verify-sandbox.mjs](./scripts/verify-sandbox.mjs) — checks
+
+Both scripts import the shared helpers from `lib/` at the skills repository root, so
+run them from a full checkout: `node <skill-root>/scripts/<name>.mjs`.

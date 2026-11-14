@@ -1,7 +1,7 @@
 # Template Variables
 
-`scripts/scaffold_sandbox.py` renders the templates. Run
-`python3 scripts/scaffold_sandbox.py --list-variables` to print this contract from
+`scripts/scaffold-sandbox.mjs` renders the templates. Run
+`node scripts/scaffold-sandbox.mjs --list-variables` to print this contract from
 the templates themselves.
 
 ## Rules
@@ -61,7 +61,7 @@ dev-container window. Detect the ones installed on the host and pass them as
 `MODEL_PROVIDER_EXTENSIONS`:
 
 ```bash
-python3 scripts/scaffold_sandbox.py --detect-model-providers
+node scripts/scaffold-sandbox.mjs --detect-model-providers
 # ["Vizards.deepseek-v4-for-copilot"]
 ```
 
