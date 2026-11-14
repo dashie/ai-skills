@@ -17,7 +17,8 @@ markers is project content and must not be rewritten by an update.
 - One-line tagline, then a short overview (3–6 sentences) aimed at a newcomer.
 - `Quick start`: prerequisites in one line, then the exact commands to install, run,
   and test — copy-pasteable, no placeholders left.
-- `Documentation map`: table linking every file in `docs/` with one line of purpose.
+- `Documentation map`: table linking every file in `docs/` with one line of purpose,
+  including `docs/USER-GUIDE.md`.
 - `Status`: project maturity (prototype / alpha / beta / production) and what that
   implies.
 - No marketing adjectives, no badges unless the user asked for them.
@@ -48,6 +49,25 @@ markers is project content and must not be rewritten by an update.
   rationale when non-obvious.
 - Non-functional requirements: measurable targets (latency, availability, limits).
 - Success metrics and open questions with an owner.
+
+## docs/USER-GUIDE.md
+
+The end-user document. It is **distributed on its own**, so it must be self-contained: no
+link to `PRODUCT.md`, `ARCHITECTURE.md`, `DEVELOPER-GUIDE.md`, or any other repository
+document, and no reference that only makes sense inside the repository.
+
+- `What it is`: one short paragraph, **at most three lines**, stating what the product is
+  and who it is for. The checker enforces the limit: one paragraph, three lines maximum.
+- `How to use it`: install, start, and use — numbered steps with real commands, then one
+  example of the main flow a user performs.
+- `Configuration`: every option the product accepts, one row each — name, type, default,
+  accepted values, and effect. Add a minimal example configuration file when the product
+  reads one. An option missing here is an undocumented feature; an option here that the
+  product no longer accepts is a stale instruction.
+- *Keeping this guide current*: fixed template text, managed block `userguide-currency`. It
+  states that the guide is updated in the same change as the behaviour it documents. Do not
+  reword or remove it.
+- Language: user-facing, second person, no internal identifiers unless the user types them.
 
 ## docs/ARCHITECTURE.md
 

@@ -107,7 +107,9 @@ user to revise it with `spec-plan`.
 1. `spec_plan.py checklist <REF>` reports every item ticked (exit 0).
 2. The full quality suite from the profile passes — run it, paste the command and the
    outcome, do not infer.
-3. Documentation listed under Affected modules is actually updated.
+3. Documentation listed under Affected modules is actually updated — including
+   `docs/USER-GUIDE.md` whenever the change is user-visible or touches a configuration
+   option, or a recorded reason why no guide change was needed.
 4. `python3 <skill-root>/scripts/spec_plan.py validate <REF> --strict` exits 0.
 
 If any item fails, it is not done. Never tick the closing items to satisfy the gate.

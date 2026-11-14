@@ -64,16 +64,37 @@ Check each row, in this order. Record evidence, not impressions.
 | 4 | New/changed behaviour has tests that exercise real code paths | major |
 | 5 | No existing test was weakened, skipped, or deleted without approval | major |
 | 6 | Checklist fully ticked, open questions resolved, Implementation Notes present | major |
-| 7 | Documentation contracts updated (architecture, decisions, glossary, product, developer guide, config reference + example config, API reference, README) | major |
+| 7 | Documentation contracts updated (architecture, decisions, glossary, product, user guide, developer guide, config reference + example config, API reference, README) | major |
 | 8 | No contradiction with the architecture document or decision records | major |
 | 9 | No out-of-plan feature or refactor (scope creep) | major |
 | 10 | New code is correct on edge cases, error paths, and input validation | major |
 | 11 | No new security weakness (injection, secrets, unsafe deserialisation, path traversal, unbounded input) | blocker |
 | 12 | `security` plans: exposure, remediation, re-scan evidence, residual-risk owner recorded | blocker |
+| 13 | User guide conforms: still accurate for the change, self-contained (no links to internal documents), summary at most three lines, every configuration option present with default and accepted values | major |
 
 Supporting detail and the documentation obligation table:
 [references/review-report.md](./references/review-report.md). For CVEs and dependency
 findings, also [references/security-review.md](./references/security-review.md).
+
+### Checking the user guide (row 13)
+
+`docs/USER-GUIDE.md` is the end-user document and is distributed on its own. Verify, with
+evidence:
+
+1. **Accuracy** — every usage step, default, and behaviour it documents still holds after
+   the change. Cross-read each documented option against the code that reads it; quote the
+   two lines in the finding.
+2. **Completeness** — every configuration option the change adds, renames, or removes
+   appears (or disappears) in `Configuration` with type, default, accepted values, and
+   effect. List the new options from the diff and confirm each is documented.
+3. **Self-containment** — no link to `PRODUCT.md`, `ARCHITECTURE.md`, `DEVELOPER-GUIDE.md`,
+   `GLOSSARY.md`, or any other repository document, and no internal reference that breaks
+   when the file is distributed alone.
+4. **Summary length** — `What it is` is one paragraph of at most three lines. Run the
+   project's documentation check when it has one; otherwise count the lines.
+
+If the change is user-visible and the guide is untouched, that is a **major** finding unless
+the plan explicitly justified why no update was needed.
 
 ## 4. Gap analysis
 

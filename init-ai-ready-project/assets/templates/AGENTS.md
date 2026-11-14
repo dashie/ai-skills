@@ -39,6 +39,7 @@ document you need before changing behaviour.
 | [README.md](./README.md) | Purpose, quick start, documentation map | Setup or entry points change |
 | [CONTRIBUTING.md](./CONTRIBUTING.md) | Branching, review, definition of done | The contribution process changes |
 | [docs/PRODUCT.md](./docs/PRODUCT.md) | Users, scope, functional behaviour, business rules | Requirements or scope change |
+| [docs/USER-GUIDE.md](./docs/USER-GUIDE.md) | How users use and configure the product, with every configuration option | User-visible behaviour or a configuration option changes |
 | [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) | arc42 structure, C4 views, components, contracts, invariants | Structure, interfaces, or constraints change |
 | [docs/ADR.md](./docs/ADR.md) | Index of architecture decisions and their rationale | A decision is made, accepted, or superseded |
 | [docs/GLOSSARY.md](./docs/GLOSSARY.md) | One precise definition per domain term | A domain term is introduced or redefined |

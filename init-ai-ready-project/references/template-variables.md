@@ -73,6 +73,15 @@ Fixed text plus the import line `@AGENTS.md`. No other content, no rules.
 | `SUCCESS_METRICS` | Observable post-release outcomes |
 | `PRODUCT_ASSUMPTIONS` | `### Assumptions` and `### Open questions` subsections |
 
+| `PROJECT_NAME` | Project name |
+| `PRODUCT_SUMMARY` | At most three lines: what the product is and who it is for. One paragraph, no list, no heading |
+| `USAGE_GUIDE` | How to install, start, and use the product: numbered steps, real commands, one concrete example of the main flow |
+| `CONFIGURATION` | Every configuration option, one row each: name, type, default, accepted values, effect. A table, plus a minimal example configuration when the product reads a file |
+
+`docs/USER-GUIDE.md` is distributed on its own: never link it to the other documents, and
+keep `PRODUCT_SUMMARY` within three lines — the checker enforces it. The *Keeping this
+guide current* section is fixed template text.
+
 ## `docs/ARCHITECTURE.md`
 
 | Placeholder | Content |

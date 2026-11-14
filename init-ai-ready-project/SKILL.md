@@ -1,15 +1,15 @@
 ---
 name: init-ai-ready-project
-description: 'Bootstrap a new project repository so it is ready for AI-assisted development, and bring an already initialized repository up to the current standard. Use when asked to create/initialize/scaffold/bootstrap a new project, repo, or codebase, or to set up its project documentation (README, CONTRIBUTING, docs/PRODUCT.md, docs/ARCHITECTURE.md, docs/ADR.md, docs/GLOSSARY.md, docs/DEVELOPER-GUIDE.md) and agent instructions (AGENTS.md plus a CLAUDE.md import). Also use when an existing repository already carries this baseline and its rules or standards changed and must be re-applied. Reads the user project description, interviews the user for missing information instead of inventing it, and renders deterministic templates.'
+description: 'Bootstrap a new project repository so it is ready for AI-assisted development, and bring an already initialized repository up to the current standard. Use when asked to create/initialize/scaffold/bootstrap a new project, repo, or codebase, or to set up its project documentation (README, CONTRIBUTING, docs/PRODUCT.md, docs/USER-GUIDE.md, docs/ARCHITECTURE.md, docs/ADR.md, docs/GLOSSARY.md, docs/DEVELOPER-GUIDE.md) and agent instructions (AGENTS.md plus a CLAUDE.md import). Also use when an existing repository already carries this baseline and its rules or standards changed and must be re-applied. Reads the user project description, interviews the user for missing information instead of inventing it, and renders deterministic templates.'
 argument-hint: '<project description> [destination path]'
 ---
 
 # Initialize an AI-Ready Project
 
 Create the documentation baseline that lets a human and an AI agent work on a new
-repository without guessing: what the product is, how the system is built, which
-decisions were made, what the words mean, how to build and test, and how to
-contribute.
+repository without guessing: what the product is, how to use and configure it, how the
+system is built, which decisions were made, what the words mean, how to build and test,
+and how to contribute.
 
 **Everything this skill writes is in English**, including prose, headings, commit
 messages, code, comments, identifiers, and file names. The target repository has a
@@ -34,6 +34,7 @@ Exactly these files, rendered from the templates in [assets/templates](./assets/
 | `README.md` | Entry point: purpose, quick start, documentation map |
 | `CONTRIBUTING.md` | How to contribute: branching, review, definition of done |
 | `docs/PRODUCT.md` | Purpose, users, scope, functional behaviour, business rules |
+| `docs/USER-GUIDE.md` | How end users use and configure the product; every configuration option. Self-contained: distributed on its own |
 | `docs/ARCHITECTURE.md` | arc42 + C4 structure, components, contracts, invariants |
 | `docs/ADR.md` | Index of architecture decision records and their rationale |
 | `docs/GLOSSARY.md` | Domain language, one precise definition per term |
@@ -155,8 +156,12 @@ The checker fails on a missing or empty file, a leftover placeholder, a broken
 relative link, or a missing fixed section (`Git Standards` and `### Design rules` in
 the developer guide, `### Architecture principles` in the architecture document, the
 `## Engineering principles` section in `AGENTS.md`, the English-only rule and
-documentation map in `AGENTS.md`, the tests sentence in `CONTRIBUTING.md`). Fix the
-values file and re-render with `--force`; never patch the generated files by hand.
+documentation map in `AGENTS.md`, the tests sentence in `CONTRIBUTING.md`, the
+`## How to use it` and `## Configuration` sections plus the maintenance rules in
+`docs/USER-GUIDE.md`). It also fails when the `## What it is` summary in
+`docs/USER-GUIDE.md` is not a single paragraph of at most three lines, or when the guide
+links to another repository document instead of standing alone. Fix the values
+file and re-render with `--force`; never patch the generated files by hand.
 
 The checker also fails when a managed block marker is missing or unbalanced, or when a
 block the templates declare is absent from a generated file.
@@ -247,6 +252,12 @@ Two cases need a manual decision instead of a script:
   `.github/copilot-commit-message-instructions.md`; every other file links to it. Never
   copy the type table or the examples into `docs/DEVELOPER-GUIDE.md`, `AGENTS.md`, or
   `CONTRIBUTING.md`.
+- **The user guide is self-contained and always current.** `docs/USER-GUIDE.md` is meant
+  to be distributed on its own, so it never links to the other documents, its
+  `## What it is` summary stays at most three lines, and it lists every configuration
+  option the product accepts — name, default, accepted values, effect. A change that
+  alters user-visible behaviour or a configuration option updates the guide in the same
+  change; the managed block `userguide-currency` carries that rule into every repository.
 - **Fixed text is edited in the template, never in the target.** Every fixed block is
   wrapped in `<!-- skill:block:<id> -->` / `<!-- skill:end:<id> -->`; a change to the
   standard is a template edit followed by `update.py` on the repository. Never hand-edit

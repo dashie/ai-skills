@@ -29,9 +29,10 @@ path is not a finding, a stale existing path is.
 | New trade-off, technology, or reversal of a decision | decision record |
 | New/renamed domain term | glossary |
 | User-visible behaviour, scope, business rule | product document |
+| User-visible behaviour, usage step, or configuration option | user guide (usage plus every option, default, and accepted values; self-contained) |
 | Build, run, test, or contribution steps | developer guide, README |
 | New/renamed/removed configuration field | configuration reference **and** example config |
-| New/changed/removed endpoint, event, or CLI flag | API reference, CLI docs |
+| New/changed/removed endpoint, event, or CLI flag | API reference, CLI docs, **and** the user guide (how to use it) |
 | Any user-visible change | changelog (at close, if the project ships one) |
 | Any new dependency or bump | lockfile, dependency policy notes |
 

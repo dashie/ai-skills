@@ -329,7 +329,11 @@ def main(argv=None):
         if not os.path.isfile(path):
             template_text = read(os.path.join(TEMPLATES, name))
             if not is_fully_managed(template_text):
-                errors.append("missing file %s: run the scaffold first" % name)
+                errors.append(
+                    "missing file %s: it holds project content, so it is never created "
+                    "automatically; copy assets/templates/%s from the skill, fill in its "
+                    "placeholders, then re-run update" % (name, name)
+                )
                 continue
             if not args.dry_run:
                 create_from_template(path, template_text)

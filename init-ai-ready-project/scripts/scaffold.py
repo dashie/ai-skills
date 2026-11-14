@@ -26,6 +26,7 @@ TARGETS = [
     (".github/copilot-commit-message-instructions.md", ".github/copilot-commit-message-instructions.md"),
     (".github/copilot-pull-request-instructions.md", ".github/copilot-pull-request-instructions.md"),
     ("docs/PRODUCT.md", "docs/PRODUCT.md"),
+    ("docs/USER-GUIDE.md", "docs/USER-GUIDE.md"),
     ("docs/ARCHITECTURE.md", "docs/ARCHITECTURE.md"),
     ("docs/ADR.md", "docs/ADR.md"),
     ("docs/GLOSSARY.md", "docs/GLOSSARY.md"),

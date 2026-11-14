@@ -68,7 +68,9 @@ Rules:
 - Do not start writing the plan while a question that changes the design is unresolved.
 
 You must have unambiguous answers to: type, goal and success criteria, scope in/out, edge
-cases and failure paths, integration points, impact, and how the change will be verified.
+cases and failure paths, integration points, impact, how the change will be verified, and —
+whenever the change is visible to users — what they do differently and which configuration
+options they gain, lose, or see change.
 
 ## 3. Duplicate and dependency check
 
@@ -97,8 +99,29 @@ Checkpoints are a contract: the implementer stops there and waits. Use them spar
 
 Before writing: read the affected source files, their tests, the configuration they consume,
 and the docs the plan will have to update (architecture, decision records, glossary,
-product, developer guide, changelog, backlog). Cite the concrete symbols and files you
-found; a plan that names real functions is executable.
+product, user guide, developer guide, changelog, backlog). Cite the concrete symbols and
+files you found; a plan that names real functions is executable.
+
+### The user guide is part of every user-visible plan
+
+`docs/USER-GUIDE.md` is the end-user document: a three-line product summary, how to use the
+product, and **every configuration option** with its type, default, accepted values, and
+effect. It is distributed on its own, so it is self-contained and never links to the
+repository's internal documents.
+
+When the change alters what a user does, sees, or configures — a new or changed command,
+flag, endpoint, screen, default, environment variable, or configuration key — the plan
+**must**:
+
+1. list `docs/USER-GUIDE.md` under **Documentation / configuration** in *Affected
+   modules*, naming the sections to update (`What it is`, `How to use it`,
+   `Configuration`);
+2. add a step in *Proposed solution* that updates it, with a `Verify:` line that checks the
+   documented option against the code that reads it;
+3. keep the summary at three lines or less — detail belongs in the sections below it.
+
+A plan that changes user-visible behaviour or a configuration option without that entry is
+incomplete: review treats the missing guide update as a defect.
 
 ## 6. Write the plan
 
@@ -124,7 +147,8 @@ Non-negotiables:
 - **Implementation checklist mirrors the steps** and ends with the mandatory items (open
   questions resolved, quality suite passes, docs updated, Implementation Notes written).
 - **Open questions are checkboxes** with a current best guess, not vague worries.
-- Documentation obligations are concrete: which file, which section.
+- Documentation obligations are concrete: which file, which section — and the user guide
+  entry described above whenever the change is user-visible or touches configuration.
 
 For `security` plans, `## Security considerations` is mandatory and must record exposure,
 remediation choice, and residual risk.

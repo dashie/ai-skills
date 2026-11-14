@@ -18,6 +18,7 @@ REQUIRED_FILES = [
     ".github/copilot-pull-request-instructions.md",
     ".vscode/settings.json",
     "docs/PRODUCT.md",
+    "docs/USER-GUIDE.md",
     "docs/ARCHITECTURE.md",
     "docs/ADR.md",
     "docs/GLOSSARY.md",
@@ -34,6 +35,13 @@ FIXED_CONTENT = {
         "ships with the tests of the part it changes",
         "### Commit messages",
         ".github/copilot-commit-message-instructions.md",
+    ],
+    "docs/USER-GUIDE.md": [
+        "## How to use it",
+        "## Configuration",
+        "Keeping this guide current",
+        "living document",
+        "configuration option",
     ],
     "docs/ARCHITECTURE.md": [
         "### Architecture principles",
@@ -76,6 +84,11 @@ BLOCK_END = re.compile(r"<!-- skill:end:([a-z0-9-]+) -->")
 TABLE_ROW = re.compile(r"^\s*\|.*\|\s*$")
 TABLE_SEPARATOR = re.compile(r"^\s*\|(\s*:?-+:?\s*\|)+\s*$")
 CODE_FENCE = re.compile(r"^\s*(```|~~~)")
+HEADING = re.compile(r"^(#{1,6})\s")
+HTML_COMMENT = re.compile(r"<!--.*?-->", re.S)
+
+USER_GUIDE_SUMMARY_HEADING = "## What it is"
+USER_GUIDE_SUMMARY_MAX_LINES = 3
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATES = os.path.join(os.path.dirname(SCRIPT_DIR), "assets", "templates")
@@ -132,6 +145,84 @@ def check_tables(name, text):
         else:
             flush()
     flush()
+    return problems
+
+
+def section_body(text, heading):
+    """Lines of the section that starts at `heading`, comments removed.
+
+    Returns None when the heading is absent. The section ends at the next heading of
+    the same or a higher level.
+    """
+    text = HTML_COMMENT.sub("", text)
+    lines = text.splitlines()
+    start = None
+    level = None
+    for index, line in enumerate(lines):
+        if line.rstrip() == heading:
+            start = index
+            level = len(HEADING.match(heading).group(1))
+            break
+    if start is None:
+        return None
+    body = []
+    for line in lines[start + 1:]:
+        match = HEADING.match(line)
+        if match and len(match.group(1)) <= level:
+            break
+        body.append(line)
+    return body
+
+
+def check_user_guide(name, text):
+    """`What it is` is one short paragraph, and the guide stands alone.
+
+    The guide is distributed on its own, so a link to another repository document makes
+    the standalone copy broken.
+    """
+    problems = []
+    for target in relative_links(text):
+        problems.append(
+            "%s: links to %s, but this guide is distributed on its own and must not "
+            "reference other repository documents" % (name, target)
+        )
+
+    body = section_body(text, USER_GUIDE_SUMMARY_HEADING)
+    if body is None:
+        problems.append("%s: missing %s section" % (name, USER_GUIDE_SUMMARY_HEADING))
+        return problems
+
+    paragraphs = []
+    current = []
+    in_fence = False
+    for line in body:
+        if CODE_FENCE.match(line):
+            in_fence = not in_fence
+        elif not in_fence and not line.strip():
+            if current:
+                paragraphs.append(current)
+                current = []
+            continue
+        current.append(line)
+    if current:
+        paragraphs.append(current)
+
+    if len(paragraphs) != 1:
+        problems.append(
+            "%s: %s must be a single paragraph (found %d)"
+            % (name, USER_GUIDE_SUMMARY_HEADING, len(paragraphs))
+        )
+        return problems
+    if len(paragraphs[0]) > USER_GUIDE_SUMMARY_MAX_LINES:
+        problems.append(
+            "%s: the summary under %s is %d lines long, the maximum is %d"
+            % (
+                name,
+                USER_GUIDE_SUMMARY_HEADING,
+                len(paragraphs[0]),
+                USER_GUIDE_SUMMARY_MAX_LINES,
+            )
+        )
     return problems
 
 
@@ -224,6 +315,8 @@ def main(argv=None):
                 resolved = os.path.normpath(os.path.join(os.path.dirname(path), target))
                 if not os.path.exists(resolved):
                     problems.append("broken link %s in %s" % (target, name))
+        if name == "docs/USER-GUIDE.md":
+            problems.extend(check_user_guide(name, text))
         for needle in FIXED_CONTENT.get(name, []):
             if needle not in text:
                 problems.append("missing fixed content %r in %s" % (needle, name))

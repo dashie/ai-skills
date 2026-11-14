@@ -65,6 +65,9 @@ Every file the implementation is expected to touch, grouped by category. This li
 
 **Documentation / configuration**
 - `docs/ARCHITECTURE.md` — section to update (or "no change")
+- `docs/USER-GUIDE.md` — sections to update when the change is user-visible or touches a
+  configuration option (`What it is`, `How to use it`, `Configuration`); the guide is
+  self-contained and lists every option
 
 Mark uncertain files with `(maybe)`; they also require confirmation before editing.
 
@@ -135,4 +138,6 @@ log used to resume a session.
 - [x] All open questions resolved
 - [ ] Quality suite passes (`<command from the profile>`)
 - [ ] Documentation listed under Affected modules is updated
+- [ ] User guide (`docs/USER-GUIDE.md`) reflects user-visible behaviour and every
+      configuration option, or the plan records why it needs no change
 - [ ] `## Implementation Notes` added or updated in this plan

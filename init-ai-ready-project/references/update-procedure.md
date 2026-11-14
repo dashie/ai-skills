@@ -46,11 +46,12 @@ The markers are the contract. Prose outside them is never rewritten by
 | `docs/DEVELOPER-GUIDE.md` | `devguide-test-rules` | Rules that apply to every test |
 | `docs/DEVELOPER-GUIDE.md` | `devguide-design-rules` | Design rules when adding code |
 | `docs/DEVELOPER-GUIDE.md` | `devguide-git-standards` | Git process (commit summary, branches, pull requests, language) |
+| `docs/USER-GUIDE.md` | `userguide-currency` | The rule that the guide is updated with the behaviour it documents |
 
 Not managed: `README.md`, `.gitignore`, `.vscode/settings.json`, and every section
-whose body comes from a placeholder (`docs/PRODUCT.md`, `docs/ADR.md`,
-`docs/GLOSSARY.md`, and the `{{...}}` sections of the other files). Those are project
-content.
+whose body comes from a placeholder (`docs/PRODUCT.md`, `docs/USER-GUIDE.md`,
+`docs/ADR.md`, `docs/GLOSSARY.md`, and the `{{...}}` sections of the other files). Those
+are project content.
 
 `.vscode/settings.json` is JSON: it cannot carry HTML markers, and a repository
 usually already has editor settings. It is merged instead of updated — the two
@@ -113,7 +114,10 @@ templates themselves have unbalanced markers.
 - **Deliverables are created only when they hold no project content.** A file that is
   nothing but managed blocks and no placeholder (today the two
   `.github/copilot-*-instructions.md`) is created from the template. Anything else that
-  is missing is an error, never a silent scaffold.
+  is missing is an error, never a silent scaffold — in particular `docs/USER-GUIDE.md`,
+  which a repository initialized before it existed does not have: copy it from
+  `assets/templates/docs/USER-GUIDE.md`, fill in its three placeholders, then re-run
+  `update.py`.
 - **`.gitignore` is never edited.** An older variant may exclude `.vscode/` as a
   directory, which defeats `!.vscode/settings.json` because Git cannot re-include a file
   inside an excluded directory. Check with

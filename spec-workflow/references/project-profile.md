@@ -54,6 +54,7 @@ docs:
   decisions: docs/ADR.md
   glossary: docs/GLOSSARY.md
   product: docs/PRODUCT.md
+  user_guide: docs/USER-GUIDE.md
   developer_guide: docs/DEVELOPER-GUIDE.md
   changelog: CHANGELOG.md
   backlog: BACKLOG.md
@@ -117,6 +118,9 @@ the paths that exist; a missing path is not an error. Typical obligations:
 - `decisions` — a new trade-off, technology choice, or reversal of an earlier decision.
 - `glossary` — new or renamed domain terms.
 - `product` — user-visible behaviour, scope, or business rules.
+- `user_guide` — how users use and configure the product: every configuration option with
+  its default and accepted values. Self-contained and distributed on its own, so it never
+  links to the repository's internal documents.
 - `developer_guide` — build, run, test, or contribution steps.
 - `changelog` — every user-visible change at close time.
 - `backlog` — link the plan next to its backlog item at plan time; mark it delivered at
@@ -146,6 +150,7 @@ quality:
 
 docs:
   architecture: docs/ARCHITECTURE.md
+  user_guide: docs/USER-GUIDE.md
   changelog: CHANGELOG.md
 
 version:
