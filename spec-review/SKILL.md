@@ -1,6 +1,6 @@
 ---
 name: spec-review
-description: 'Review a completed implementation against its tech plan and produce a PASS or NEEDS WORK verdict: runs the project quality gate, audits scope, tests, documentation and architecture consistency, performs gap analysis, and appends Review Notes to the plan. Use when the user asks to review an implementation, says "spec-review", "rivedi il piano", "fai la review", "verifica il lavoro", or asks whether a planned change is ready to be closed. It never implements fixes beyond approved minor ones, never creates plans, and never closes the plan.'
+description: 'Review a completed implementation against its tech plan and produce a PASS or NEEDS WORK verdict: runs the project quality gate, audits scope, tests, documentation and architecture consistency, performs gap analysis, and appends Review Notes to the plan. Use when the user asks to review an implementation, says "spec-review", "rivedi il piano", "fai la review", "verifica il lavoro", or asks whether a planned change is ready to be closed. It corrects the project documentation the change made stale, fixes approved minor issues, never rewrites production code or tests, never creates plans, and never closes the plan.'
 argument-hint: '<plan number, number-slug, or path>'
 ---
 
@@ -22,7 +22,7 @@ Each round appends its own `## Review Notes`. Only the **latest** verdict counts
 ## 0. Pre-flight — gate
 
 ```
-node <skill-root>/scripts/spec-plan.mjs validate-for review <REF>
+aispec plan validate-for review <REF>
 ```
 
 Requires status `in-progress`. On failure: stop, report, and name the allowed command.
@@ -50,6 +50,9 @@ You review what actually changed, not what the plan hoped.
 2. Documentation consistency check, if the project defines one.
 3. Paste each command with its result: `✓ passed (N tests)`, `✗ failed (details)`.
 
+After correcting documentation (§6), re-run the documentation check and report its result in
+the same table. A review that edited documents without re-validating them is not evidence.
+
 A review cannot be PASS while any of these fails, regardless of how good the code looks.
 
 ## 3. Verification matrix
@@ -76,6 +79,11 @@ Supporting detail and the documentation obligation table:
 [references/review-report.md](./references/review-report.md). For CVEs and dependency
 findings, also [references/security-review.md](./references/security-review.md).
 
+Documentation findings (rows 7, 8, 13) are the one class the reviewer repairs itself: correct
+the stale document, re-run the documentation check, and record the hunks as evidence
+(§6). A documentation gap that would require a decision the plan never took is not a doc fix —
+it stays a major finding for `spec-implement`.
+
 ### Checking the user guide (row 13)
 
 `docs/USER-GUIDE.md` is the end-user document and is distributed on its own. Verify, with
@@ -94,7 +102,9 @@ evidence:
    project's documentation check when it has one; otherwise count the lines.
 
 If the change is user-visible and the guide is untouched, that is a **major** finding unless
-the plan explicitly justified why no update was needed.
+the plan explicitly justified why no update was needed. In both cases the reviewer brings the
+guide in line with the verified change itself and records the hunks (§6); it never documents
+behaviour it did not confirm against the code or the executed tests.
 
 ## 4. Gap analysis
 
@@ -113,11 +123,16 @@ Undocumented deviation from the plan is itself a finding, even when the code is 
 | Severity | Definition |
 |---|---|
 | blocker | Failing quality suite, goal not met, security weakness, checklist/notes missing |
-| major | Scope violation, missing tests, stale documentation, undocumented deviation, correctness bug |
+| major | Scope violation, missing tests, undocumented deviation, correctness bug, documentation gap that needs a product or architecture decision |
 | minor | Typo, stale comment, small doc inconsistency, missing import, unclear name |
 | nit | Preference, no behavioural effect — report only, never gate on it |
 
-- Any **blocker** or **major** → `NEEDS WORK`.
+Documentation that is merely stale or wrong about the delivered change — not a new decision —
+is corrected by the reviewer, evidenced, and closed as `fixed in review`; it does not by
+itself force `NEEDS WORK`. Anything else at major or above still does.
+
+- Any **blocker** or **major** → `NEEDS WORK`, except documentation findings corrected and
+  evidenced in this round.
 - **Minor** findings → may be fixed with permission, then `PASS`.
 - **Nit** findings → never block; mention at most three.
 - No findings → `PASS`.
@@ -126,7 +141,32 @@ If the same issue survives two rounds, or the plan has been through three review
 stop and escalate to the user with the history: repeated failures usually mean the plan, not
 the code, is wrong.
 
-## 6. Fixing minor issues
+## 6. Fixing documentation and minor issues
+
+### Documentation
+
+Fixing documentation is part of the review, not a favour: when the change made a document
+stale, wrong, or incomplete, correct it before voting. No permission is needed.
+
+1. Targets: the documentation contracts listed in
+   [references/review-report.md](./references/review-report.md) — architecture, decisions,
+   glossary, product, user guide, developer guide, README, configuration reference and
+   example config, API/CLI reference. Never the plan file; the changelog belongs to
+   `spec-close`.
+2. Source of truth: the diff, the code that reads the documented option, and the executed
+   evidence. Never write what you did not verify, and never invent defaults or accepted
+   values — read them in the code.
+3. Surgical: fix only what this change made inaccurate. No rewrites, no style passes, no
+   unrelated cleanup, no new chapters.
+4. Re-run the documentation check (or the linter covering the files) and paste the result.
+5. Record every file and hunk in the Findings table with status `fixed in review`, and quote
+   the before/after line for the core correction.
+
+Stop and report instead when the documentation gap is really an unmade decision: new scope,
+new trade-off, a behaviour the plan never specified. Those are major findings for
+`spec-implement` — write them down, do not decide them.
+
+### Minor issues
 
 1. List every issue you intend to fix, with file and line.
 2. Ask for permission once, explicitly.
@@ -134,8 +174,8 @@ the code, is wrong.
    here".
 4. Re-run the checks you invalidated and update the evidence.
 
-Blockers and majors are reported, never fixed by the reviewer: they go back to
-`spec-implement` so the implementation phase stays accountable for them.
+Blockers and majors in code, tests or scope are reported, never fixed by the reviewer: they
+go back to `spec-implement` so the implementation phase stays accountable for them.
 
 ## 7. Write the Review Notes
 
@@ -173,14 +213,17 @@ Rules for the block:
 
 - `**Verdict**` must be exactly `PASS` or `NEEDS WORK` — the close gate parses it.
 - Append a new round block; never rewrite or delete earlier rounds.
+- Documentation corrected by the reviewer is listed as a finding with status `fixed in
+  review`, together with the evidence that the documentation check now passes.
 - `**Suggested commit**` follows the profile's convention (Conventional Commits by default):
   type from the plan's `type` (`feature→feat`, `security→fix` or `feat`), scope from `area`
-  slugified, imperative description ≤72 characters.
+  slugified, imperative description ≤72 characters. Review-side documentation fixes are part
+  of the same commit; do not propose a second docs-only commit for them.
 - Never write `PASS` for work you did not verify in this session.
 
 ## 8. Update the status
 
-- **PASS** → `node <skill-root>/scripts/spec-plan.mjs set-status <REF> reviewed`, then tell
+- **PASS** → `aispec plan set-status <REF> reviewed`, then tell
   the user to run `spec-close <NNN>`.
 - **NEEDS WORK** → leave the status as `in-progress` (do **not** change it), and tell the user
   to run `spec-implement <NNN>` to address the findings, then `spec-review <NNN>` again.
@@ -197,8 +240,10 @@ summary of what the code does.
   status checks, and status changes. Do not invent ad-hoc shell commands or manually
   reproduce a helper check; if the helper is unavailable or lacks the required operation,
   stop and report the blocker.
-- Review only. Never re-implement a blocker, never rewrite the plan, never archive.
+- Review only. Never rewrite production code, tests, or the plan, never archive. The sole
+  edits a reviewer makes are the documentation corrections in §6 and the approved minor
+  fixes.
 - Never mark `reviewed` without a fresh PASS backed by executed commands.
 - Never approve out-of-scope changes retroactively — require the user's explicit decision.
-- Never modify existing tests, and never fix issues outside the approved minor list.
+- Never modify existing tests, and never fix code issues outside the approved minor list.
 - Never run Git write commands unless the profile sets `git.allow_writes: true`.

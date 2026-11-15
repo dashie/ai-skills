@@ -52,6 +52,8 @@ const FIXED_CONTENT = {
     "ships with the tests of the part it changes",
     "### Commit messages",
     ".github/copilot-commit-message-instructions.md",
+    "## AI skills",
+    "aispec allow",
   ],
   "docs/USER-GUIDE.md": [
     "## How to use it",
@@ -74,6 +76,8 @@ const FIXED_CONTENT = {
     "Simplicity first (KISS)",
     "Modularity and decoupling",
     "Tests ship with the change",
+    "## AI skills",
+    "aispec allow",
   ],
   "CONTRIBUTING.md": [
     "includes the tests of the code it touches",

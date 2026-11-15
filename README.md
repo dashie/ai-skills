@@ -52,8 +52,8 @@ shared library from there.
 To confirm that the scripts are available, run:
 
 ```sh
-node ~/.copilot/skills/init-ai-ready-project/scripts/scaffold.mjs --list-variables
-node ~/.copilot/skills/spec-workflow/scripts/spec-plan.mjs --help
+~/.copilot/skills/bin/aispec scaffold --list-variables
+~/.copilot/skills/bin/aispec plan --help
 ```
 
 Both commands should print information and exit successfully. Restart the
@@ -63,7 +63,8 @@ Copilot session if newly installed skills do not appear.
 
 The scripts run with `node` and need no installation step. `package.json` is
 only a convenience layer: it declares the required Node.js version and exposes
-the commands as `bin` entries, so `npm link` installs them on your `PATH`:
+the commands as `bin` entries, so `npm link` installs them on your `PATH` —
+`aispec` is the one the skills call:
 
 ```sh
 npm link     # optional: exposes the commands below
@@ -72,15 +73,19 @@ npm run smoke
 
 | Command | Script |
 |---|---|
+| `aispec` | `bin/aispec` (dispatcher for every command below) |
 | `skill-scaffold` | `init-ai-ready-project/scripts/scaffold.mjs` |
 | `skill-update` | `init-ai-ready-project/scripts/update.mjs` |
 | `skill-check-output` | `init-ai-ready-project/scripts/check-output.mjs` |
 | `sandbox-scaffold` | `init-devcontainer-ai-sandbox/scripts/scaffold-sandbox.mjs` |
 | `sandbox-verify` | `init-devcontainer-ai-sandbox/scripts/verify-sandbox.mjs` |
+| `sandbox-uninstall` | `init-devcontainer-ai-sandbox/scripts/uninstall-sandbox.mjs` |
 | `spec-plan` | `spec-workflow/scripts/spec-plan.mjs` |
+| `skill-allow` | `scripts/allow-skills.mjs` |
 
-Without `npm link`, run any of them with `node <path>`; the skills use exactly
-that form.
+Without `npm link`, `~/.copilot/skills/bin/aispec <verb>` works with the
+absolute path, and `node <path>` still runs any script directly — but the
+permission approval grants `aispec` only, so a direct `node` call asks again.
 
 `npm run smoke` (or `node scripts/smoke.mjs`) renders every scaffold into a
 temporary directory and verifies the result, so it proves the checkout is
@@ -103,7 +108,74 @@ your request in chat. You can name a skill explicitly, for example:
 
 The spec workflow runs in order: **plan → implement → review → close**. Each
 phase stops and tells you what to do next; review can send work back to
-implementation.
+implementation, and corrects the documentation the change made stale.
+
+## One command for every skill
+
+`bin/aispec` dispatches to the scripts, so a single permission rule covers them all:
+
+```sh
+aispec plan list          # spec-workflow/scripts/spec-plan.mjs
+aispec scaffold ...       # init-ai-ready-project/scripts/scaffold.mjs
+aispec update ...         # init-ai-ready-project/scripts/update.mjs
+aispec check ...          # init-ai-ready-project/scripts/check-output.mjs
+aispec allow ...          # scripts/allow-skills.mjs
+aispec sandbox-scaffold | sandbox-verify | sandbox-uninstall ...
+```
+
+`aispec <verb> --help` prints the verb's own options. Put it on `PATH` once:
+
+```sh
+npm link                  # from ~/.copilot/skills, exposes `aispec`
+# or: export PATH="$HOME/.copilot/skills/bin:$PATH"
+```
+
+Without it, `~/.copilot/skills/bin/aispec plan list` works with the absolute path, and
+`node ~/.copilot/skills/spec-workflow/scripts/spec-plan.mjs list` keeps working as
+documented in each `SKILL.md`. The dispatcher is a plain node script with no
+dependencies.
+
+## Run the skills without approval prompts
+
+The skills execute scripts that live outside the project you are working in, so the
+agent asks before running them. Copilot stores that approval per location, in
+`~/.copilot/permissions-config.json`; you can also write it up front instead of
+answering the prompt each time:
+
+```sh
+cd /path/to/your-repo
+aispec allow
+```
+
+It approves the `aispec` command (`aispec:*`) and adds the skills directory to
+`allowed_directories` for that repository. It merges, never replaces: other locations
+and other approvals are left alone, and running it twice changes nothing. An older
+`node:*` entry in the same location is dropped, because approving `node` approves every
+node script — `aispec` reaches only the skill scripts.
+
+- The location is the repository root, so a worktree is approved by approving
+  its main checkout. A directory outside a Git repository is keyed by its own
+  path.
+- Run it once per repository where you use the skills. To skip that step, start
+  the session and approve `aispec` for the repository when the first prompt
+  appears: Copilot writes the same entry.
+- `--dir <path>` approves another directory, `--remove` takes the approvals
+  back, `--dry-run` prints the result without writing, and `--config <file>`
+  targets a different configuration file.
+- The approval covers `aispec` and read access to the skills directory only;
+  every other command keeps its normal policy. Calling the scripts through
+  `node` directly needs its own approval.
+- `init-ai-ready-project` records the same approval for the repository it
+  scaffolds, so a new project needs no extra step. Its `--no-allow-skills` flag
+  skips that write.
+
+Saved approvals apply to interactive sessions. Non-interactive runs
+(`copilot -p`) ignore them and deny anything that would prompt, so pass the
+equivalent flags instead:
+
+```sh
+copilot -p "..." --allow-tool 'shell(aispec:*)' --add-dir ~/.copilot/skills
+```
 
 ## Updating
 

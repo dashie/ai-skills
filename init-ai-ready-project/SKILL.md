@@ -49,6 +49,12 @@ Exactly these files, rendered from the templates in [assets/templates](./assets/
 Never add other files. Never generate a different document set unless the user
 explicitly asks.
 
+The scaffold also records one thing **outside** the destination: the approval that lets
+an agent run the skill scripts in that repository without a prompt each time, written as
+a location entry in `~/.copilot/permissions-config.json` (see
+[Run the scaffold](#5-render-the-scaffold)). It is not a deliverable of the repository,
+it never fails the run, and `--no-allow-skills` skips it.
+
 ### Managed blocks
 
 Every piece of fixed text the skill owns is delimited in the templates — and therefore
@@ -122,7 +128,7 @@ code fences. Write the file outside the destination tree (e.g.
 To see the exact contract before writing values:
 
 ```bash
-node ~/.copilot/skills/init-ai-ready-project/scripts/scaffold.mjs --list-variables
+aispec scaffold --list-variables
 ```
 
 Content requirements per document are in
@@ -131,7 +137,7 @@ Content requirements per document are in
 ### 5. Render the scaffold
 
 ```bash
-node ~/.copilot/skills/init-ai-ready-project/scripts/scaffold.mjs \
+aispec scaffold \
   --dest "<destination>" \
   --values "<values.json>" \
   --gitignore <generic|node|python|go|rust|java>
@@ -146,17 +152,26 @@ approved overwriting). Use `--dry-run` first when unsure.
 existing file and reported as `merged N key(s)`, `unchanged`, or `skipped` when the
 file is not plain JSON. Existing values are never changed.
 
+The script then approves the skills for the destination and prints
+`approved the skills for <location> in <config>`. That entry — an `aispec:*` command
+approval plus the skills directory in `allowed_directories`, keyed by the repository
+root — is what lets the agent run the skills in the new repository without a prompt.
+It is per location, it merges with whatever the file already holds, and a failure is a
+warning with the manual command, never a failed scaffold. Pass `--no-allow-skills` when
+the user does not want the scaffold to touch their Copilot configuration.
+
 ### 6. Verify
 
 ```bash
-node ~/.copilot/skills/init-ai-ready-project/scripts/check-output.mjs --dest "<destination>"
+aispec check --dest "<destination>"
 ```
 
 The checker fails on a missing or empty file, a leftover placeholder, a broken
 relative link, or a missing fixed section (`Git Standards` and `### Design rules` in
 the developer guide, `### Architecture principles` in the architecture document, the
 `## Engineering principles` section in `AGENTS.md`, the English-only rule and
-documentation map in `AGENTS.md`, the tests sentence in `CONTRIBUTING.md`, the
+documentation map and the `## AI skills` section in `AGENTS.md`, the `## AI skills`
+section in `docs/DEVELOPER-GUIDE.md`, the tests sentence in `CONTRIBUTING.md`, the
 `## How to use it` and `## Configuration` sections plus the maintenance rules in
 `docs/USER-GUIDE.md`). It also fails when the `## What it is` summary in
 `docs/USER-GUIDE.md` is not a single paragraph of at most three lines, or when the guide
@@ -172,7 +187,9 @@ confirm nothing from the templates was reworded.
 ### 7. Report
 
 Summarize what was created, which facts came from the user, which are assumptions,
-and which open questions remain. Explain the split: `AGENTS.md` holds the
+and which open questions remain. State that the skills are now approved for the
+repository (or that `--no-allow-skills` skipped it, and that
+`aispec allow` does it later). Explain the split: `AGENTS.md` holds the
 instructions and is read natively by GitHub Copilot CLI, GitHub Copilot in VS Code,
 the VS Code Local harness, and OpenAI Codex; `CLAUDE.md` imports it with `@AGENTS.md`
 so Anthropic Claude reads the same text. Rules are edited in `AGENTS.md` only.
@@ -194,7 +211,7 @@ Full rules and limitations: [references/update-procedure.md](./references/update
 ### 1. Inspect before touching
 
 ```bash
-node ~/.copilot/skills/init-ai-ready-project/scripts/update.mjs --dest "<repo>" --dry-run
+aispec update --dest "<repo>" --dry-run
 ```
 
 The dry run lists, per file: `updated` (existing managed block replaced), `adopted`
@@ -205,7 +222,7 @@ Show the list to the user before writing.
 ### 2. Apply
 
 ```bash
-node ~/.copilot/skills/init-ai-ready-project/scripts/update.mjs --dest "<repo>"
+aispec update --dest "<repo>"
 ```
 
 The script is idempotent: a second run reports `baseline OK` and changes nothing. It
@@ -215,7 +232,7 @@ deliverable — a missing deliverable is reported as an error.
 ### 3. Verify
 
 ```bash
-node ~/.copilot/skills/init-ai-ready-project/scripts/check-output.mjs --dest "<repo>"
+aispec check --dest "<repo>"
 git --no-pager diff
 ```
 
@@ -286,4 +303,5 @@ Two cases need a manual decision instead of a script:
 - [check-output.mjs](./scripts/check-output.mjs) — post-render verification
 
 All three scripts import the shared helpers from `lib/` at the skills repository
-root, so run them from a full checkout: `node <skill-root>/scripts/<name>.mjs`.
+root, so run them from a full checkout through the dispatcher: `aispec <verb>`
+(inside the checkout, `node <skill-root>/scripts/<name>.mjs` works the same).

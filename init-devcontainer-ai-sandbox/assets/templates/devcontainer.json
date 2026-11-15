@@ -70,9 +70,9 @@
         "chat.tools.terminal.enableAutoApprove": true,
         "chat.tools.terminal.autoApprove": {
           // The skills repository mounted at /home/dev/.copilot/skills is agent
-          // tooling: its node scripts run without a prompt, so a long run never
-          // stalls on one.
-          "/^node\\s+\\S*\\/skills\\/\\S+\\.(mjs|js)(\\s|$)/": true,
+          // tooling: its `aispec` dispatcher runs without a prompt, so a long run
+          // never stalls on one.
+          "aispec": true,
           // Destructive and history-changing commands still ask, so an unattended
           // run cannot delete work or touch Git by accident.
           "rm": false,

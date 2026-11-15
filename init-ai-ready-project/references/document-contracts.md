@@ -134,6 +134,10 @@ against C4 diagram keywords. Every diagram gets a caption and a one-sentence tak
   owning module, contracts only, KISS, tests in the same change).
 - The fixed test rules under `## Test`: every change ships with the tests of the part
   it changes, tests run per module with the others substituted by fakes.
+- The fixed **AI skills** section: where the skills live, the commands that approve and
+  revoke them for the repository, what the approval writes in
+  `~/.copilot/permissions-config.json`, and that non-interactive runs need
+  `--allow-tool 'shell(aispec:*)' --add-dir <skills>` instead.
 - **Git Standards** section: fixed, template-owned text defining the *process* — the
   rule that automated agents never commit or push, a summary of concise Conventional
   Commits with a link to the contract, branch naming and integration, the pull request
@@ -210,6 +214,10 @@ Codex.
 - Working agreement: read the docs before changing behaviour, update the doc touched
   by the change, ask instead of inventing, keep changes surgical, keep the design
   simple and the modules decoupled, ship tests with the change.
+- The **AI skills** section: which skills are installed at `~/.copilot/skills`, that
+  their scripts are tooling run with `node` and never edited from this repository, and
+  how to restore the permission approval (`aispec allow`) when a run still
+  prompts. Name the skills, do not document them in detail: their own `SKILL.md` does.
 
 ## CLAUDE.md
 

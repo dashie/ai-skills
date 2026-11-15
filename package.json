@@ -8,12 +8,15 @@
     "node": ">=22"
   },
   "bin": {
+    "aispec": "./bin/aispec",
     "skill-scaffold": "./init-ai-ready-project/scripts/scaffold.mjs",
     "skill-update": "./init-ai-ready-project/scripts/update.mjs",
     "skill-check-output": "./init-ai-ready-project/scripts/check-output.mjs",
     "sandbox-scaffold": "./init-devcontainer-ai-sandbox/scripts/scaffold-sandbox.mjs",
     "sandbox-verify": "./init-devcontainer-ai-sandbox/scripts/verify-sandbox.mjs",
-    "spec-plan": "./spec-workflow/scripts/spec-plan.mjs"
+    "sandbox-uninstall": "./init-devcontainer-ai-sandbox/scripts/uninstall-sandbox.mjs",
+    "spec-plan": "./spec-workflow/scripts/spec-plan.mjs",
+    "skill-allow": "./scripts/allow-skills.mjs"
   },
   "scripts": {
     "smoke": "node scripts/smoke.mjs"

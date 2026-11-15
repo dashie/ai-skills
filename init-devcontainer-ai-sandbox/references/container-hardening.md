@@ -43,10 +43,11 @@ executes, and the directory holds scripts — no credentials, no session state.
 
 - Read-only: a compromised or confused run cannot modify the scripts, and a skill bug
   never becomes a repository change.
-- Pre-approved for execution: `node` runs of a script under a `skills/` directory are
-  approved in the chat UI, and `post-create.sh` seeds the CLI
-  `permissions-config.json` with `node:*` and the skills directory. Without this,
-  every skill invocation prompts and long runs stall.
+- Pre-approved for execution: the `aispec` dispatcher inside the mount is approved in
+  the chat UI (and symlinked to `/usr/local/bin/aispec` by the Dockerfile), and
+  `post-create.sh` seeds the CLI `permissions-config.json` with `aispec:*` and the
+  skills directory. One narrow command, not `node`. Without this, every skill
+  invocation prompts and long runs stall.
 - Still bounded: the mount is host data, so treat skill contents as trusted code. A
   skill that reads a secret would read it from the container, not from the host home,
   which stays unmounted.

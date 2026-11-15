@@ -10,7 +10,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { failUsage, parseArgs, requireOptions } from "../../lib/cli.mjs";
-import { exists, isDir, isMainModule, readText, writeText } from "../../lib/fsx.mjs";
+import { exists, isDir, isMainModule, readText, realpath, writeText } from "../../lib/fsx.mjs";
 import {
   TemplateError,
   collectPlaceholders,
@@ -21,10 +21,16 @@ import {
   readTemplate,
   substitute,
 } from "../../lib/template.mjs";
+import {
+  PermissionsError,
+  approveSkills,
+  defaultSkillsDirectories,
+} from "../../lib/skill-approvals.mjs";
 import { padEnd, writeErr, writeOut } from "../../lib/text.mjs";
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 export const SKILL_ROOT = path.dirname(SCRIPT_DIR);
+const SKILLS_ROOT = path.dirname(SKILL_ROOT);
 export const TEMPLATE_ROOT = path.join(SKILL_ROOT, "assets", "templates");
 const GITIGNORE_ROOT = path.join(TEMPLATE_ROOT, "gitignore");
 
@@ -100,6 +106,10 @@ const SPEC = {
     },
     force: { type: "boolean", description: "overwrite existing files" },
     "dry-run": { type: "boolean", description: "report the planned writes only" },
+    "no-allow-skills": {
+      type: "boolean",
+      description: "do not record the skills approval for the destination in permissions-config.json",
+    },
     "list-variables": { type: "boolean", description: "print every placeholder and the templates that use it" },
   },
   positionals: [],
@@ -159,7 +169,32 @@ function main(argv) {
   }
 
   writeOut(`${renderSettings(destRoot, values["dry-run"])} ${SETTINGS_DESTINATION}\n`);
+  if (!values["no-allow-skills"]) approveSkillsForDestination(destRoot, values["dry-run"]);
   return 0;
+}
+
+/**
+ * A new repository cannot run the skills until Copilot has its location approved,
+ * so record it here. Failing to write the user's Copilot configuration never fails
+ * the scaffold: the command to rerun it is printed instead.
+ */
+function approveSkillsForDestination(destination, dryRun) {
+  const destRoot = realpath(destination);
+  const skillsDirs = defaultSkillsDirectories(SKILLS_ROOT);
+  if (!skillsDirs.length) {
+    writeOut("no skills directory found; approve them later with `aispec allow`\n");
+    return;
+  }
+  try {
+    const result = approveSkills({ dir: destRoot, skillsDirs, dryRun });
+    writeOut(`${dryRun ? "would approve" : "approved"} the skills for ${result.key} in ${result.file}\n`);
+  } catch (error) {
+    const reason = error instanceof PermissionsError ? error.message : String(error && error.message ? error.message : error);
+    writeErr(
+      `warning: could not approve the skills for ${destRoot}: ${reason}\n` +
+        "  run this from the repository root to approve them: aispec allow\n",
+    );
+  }
 }
 
 if (isMainModule(import.meta.url)) {

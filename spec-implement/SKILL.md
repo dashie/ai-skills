@@ -13,7 +13,7 @@ resume point at any moment.
 ## 0. Pre-flight — gate before touching anything
 
 ```
-node <skill-root>/scripts/spec-plan.mjs validate-for implement <REF>
+aispec plan validate-for implement <REF>
 ```
 
 The gate accepts `draft` (new run) and `in-progress` (resume), rejects everything else, and
@@ -41,7 +41,7 @@ do not silently re-plan.
 ## 2. Mark the plan in progress
 
 ```
-node <skill-root>/scripts/spec-plan.mjs set-status <REF> in-progress
+aispec plan set-status <REF> in-progress
 ```
 
 The script also moves the file out of `draft/` when the repository uses that split. Verify
@@ -110,7 +110,7 @@ user to revise it with `spec-plan`.
 3. Documentation listed under Affected modules is actually updated — including
    `docs/USER-GUIDE.md` whenever the change is user-visible or touches a configuration
    option, or a recorded reason why no guide change was needed.
-4. `node <skill-root>/scripts/spec-plan.mjs validate <REF> --strict` exits 0.
+4. `aispec plan validate <REF> --strict` exits 0.
 
 If any item fails, it is not done. Never tick the closing items to satisfy the gate.
 

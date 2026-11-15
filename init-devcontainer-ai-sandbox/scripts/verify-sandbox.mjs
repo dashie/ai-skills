@@ -30,7 +30,6 @@ const FORBIDDEN_MOUNTS = ["docker.sock", "/.ssh", "/.aws", "/.config/gh", "$HOME
 // The one host bind mount the sandbox allows: the skills repository, read-only.
 const SKILLS_MOUNT_SOURCE = "${localEnv:HOME}/.copilot/skills";
 const SKILLS_MOUNT_TARGET = "/home/dev/.copilot/skills";
-const SKILLS_APPROVE_PATTERN = /skills/i;
 const COMMENT_BLOCK_RE = /\/\*[\s\S]*?\*\//g;
 const COMMENT_LINE_RE = /^\s*\/\/.*$/gm;
 
@@ -150,11 +149,8 @@ function staticChecks(root) {
     if (!keepsRefusal) {
       problems.push("chat.tools.terminal.autoApprove keeps no pattern-based refusal (git/rm/curl)");
     }
-    const allowsSkills = Object.entries(approveMap).some(
-      ([key, value]) => value === true && key.startsWith("/") && SKILLS_APPROVE_PATTERN.test(key),
-    );
-    if (!allowsSkills) {
-      problems.push("chat.tools.terminal.autoApprove does not pre-approve the skills node scripts");
+    if (approveMap.aispec !== true) {
+      problems.push("chat.tools.terminal.autoApprove does not pre-approve the aispec command");
     }
     if (settings["git.enableCommitSigning"] === true) {
       problems.push("git.enableCommitSigning must stay false inside the sandbox");
@@ -214,8 +210,8 @@ function staticChecks(root) {
     if (!postCreate.includes("permissions-config.json")) {
       problems.push("post-create.sh does not seed the CLI permissions-config.json");
     }
-    if (!postCreate.includes("node:*")) {
-      problems.push("post-create.sh does not pre-approve node commands for the Copilot CLI");
+    if (!postCreate.includes("aispec:*")) {
+      problems.push("post-create.sh does not pre-approve the aispec command for the Copilot CLI");
     }
     if (!postCreate.includes("allowed_directories") || !postCreate.includes("skills")) {
       problems.push("post-create.sh does not allow the skills directory in the CLI permissions");

@@ -1,0 +1,68 @@
+#!/usr/bin/env node
+/**
+ * One command for every AI skill script.
+ *
+ * The scripts themselves stay plain node programs; this dispatcher exists so a
+ * permission rule only has to approve `aispec` — a single, narrow command — instead
+ * of `node`, which would approve every node script on the machine.
+ */
+
+import path from "node:path";
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
+
+// Node resolves the entry point to its real path, so this holds through a PATH symlink.
+const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+
+const VERBS = {
+  plan: ["spec-workflow/scripts/spec-plan.mjs", "Show, validate, and create tech plans"],
+  scaffold: ["init-ai-ready-project/scripts/scaffold.mjs", "Render the project documentation baseline"],
+  update: ["init-ai-ready-project/scripts/update.mjs", "Bring an initialized repository up to the current standard"],
+  check: ["init-ai-ready-project/scripts/check-output.mjs", "Verify a rendered baseline"],
+  allow: ["scripts/allow-skills.mjs", "Approve or revoke the skills for the current repository"],
+  "sandbox-scaffold": ["init-devcontainer-ai-sandbox/scripts/scaffold-sandbox.mjs", "Render the AI dev-container"],
+  "sandbox-verify": ["init-devcontainer-ai-sandbox/scripts/verify-sandbox.mjs", "Verify the rendered dev-container"],
+  "sandbox-uninstall": ["init-devcontainer-ai-sandbox/scripts/uninstall-sandbox.mjs", "Remove the dev-container setup"],
+};
+
+function usage() {
+  const width = Math.max(...Object.keys(VERBS).map((verb) => verb.length));
+  const lines = [
+    "usage: aispec <verb> [args...]",
+    "",
+    "Run the AI skills through one command, so one permission rule covers them all.",
+    "",
+    "verbs:",
+  ];
+  for (const [verb, [, description]] of Object.entries(VERBS)) {
+    lines.push(`  ${verb.padEnd(width)}  ${description}`);
+  }
+  lines.push("", "Run `aispec <verb> --help` for the verb's own options.");
+  return `${lines.join("\n")}\n`;
+}
+
+function main(argv) {
+  const [verb, ...rest] = argv;
+  if (verb === undefined) {
+    process.stderr.write(usage());
+    return 2;
+  }
+  if (verb === "-h" || verb === "--help" || verb === "help") {
+    process.stdout.write(usage());
+    return 0;
+  }
+  const target = VERBS[verb];
+  if (!target) {
+    process.stderr.write(`aispec: error: unknown verb '${verb}'\n\n${usage()}`);
+    return 2;
+  }
+  const script = path.join(ROOT, target[0]);
+  const result = spawnSync(process.execPath, [script, ...rest], { stdio: "inherit" });
+  if (result.error) {
+    process.stderr.write(`aispec: error: ${result.error.message}\n`);
+    return 1;
+  }
+  return result.status === null ? 1 : result.status;
+}
+
+process.exit(main(process.argv.slice(2)));

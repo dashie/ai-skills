@@ -30,7 +30,7 @@ Then read the canonical plan format:
 Get the next number with the helper script:
 
 ```
-node <skill-root>/scripts/spec-plan.mjs next-number
+aispec plan next-number
 ```
 
 `<skill-root>` is the `spec-workflow` skill directory (`~/.copilot/skills/spec-workflow` for
@@ -156,7 +156,7 @@ remediation choice, and residual risk.
 ## 7. Validate
 
 ```
-node <skill-root>/scripts/spec-plan.mjs validate <NNN>
+aispec plan validate <NNN>
 ```
 
 Fix every `ERROR`. For each `WARN`, either fix it or decide consciously not to — a warning

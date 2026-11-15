@@ -13,6 +13,7 @@ which documents a given change obliges you to update, and how to write the notes
 | Goal achieved | Test, command output, or inspected behaviour | Reading the diff and nodding |
 | Behaviour preserved | Existing suite green, no test weakened | "should still work" |
 | Docs updated | Diff hunk in the document | Doc exists somewhere |
+| Docs corrected in review | Diff hunk **and** the re-run documentation check | "I updated the docs" |
 
 Run the whole quality suite, not the narrow selection the implementer used. If a category is
 not configured in the profile, write `n/a — not configured` and say which command you asked
@@ -39,6 +40,13 @@ path is not a finding, a stale existing path is.
 A change that touches one of these areas with no corresponding document update is a **major**
 finding, unless the plan explicitly justified why no update is needed.
 
+The reviewer does not just report these: a document the change made stale, wrong, or
+incomplete is corrected in the review itself (SKILL.md §6), and the finding closes as `fixed
+in review` with the hunk and the passing documentation check as evidence. Two limits apply —
+the correction may only restate what the code, the diff, and the executed tests prove, and a
+gap that requires a decision the plan never took (new scope, new trade-off, unspecified
+behaviour) is reported as a major finding, never decided in the review.
+
 ## Scope computation
 
 1. Diff file list: `git diff --name-only <base>...HEAD` plus untracked files.
@@ -48,6 +56,8 @@ finding, unless the plan explicitly justified why no update is needed.
    explicit approval. Renamed/moved files count as listed if the plan named either path.
 5. Generated artefacts (lockfiles, generated API docs, build output) count as in-scope when
    the plan or the project's conventions produce them; say so explicitly.
+6. Documentation the reviewer corrected itself in this round counts as in-scope by
+   definition, and must appear in the Findings table so the close phase sees it.
 
 ## Test review
 
@@ -98,6 +108,7 @@ If the profile sets `commit_convention: free`, omit the convention and write a p
 |---|---|---|---|---|
 | 1 | major | `src/tile/loader.ts` | Empty payload silently produced a zero-size tile | fixed in round 2 |
 | 2 | minor | `docs/configuration.md` | New field documented without default value | fixed 2026-03-14 |
+| 3 | major | `docs/USER-GUIDE.md` | Option `retries` still documented as defaulting to 3, code uses 5 | fixed in review (doc check ✓) |
 
 ### Gap analysis
 - Goals: 4/4 achieved

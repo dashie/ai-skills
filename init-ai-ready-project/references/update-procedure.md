@@ -70,6 +70,7 @@ the block is placed using the attributes on the begin marker:
 | Attribute | Meaning |
 |---|---|
 | *(none)* | The block starts with a heading; if that heading exists in the target, its whole section is replaced |
+| `after="<block id>"` | Insert the block right after that managed block — outside every region an update replaces, so the insertion survives |
 | `before="<heading>"` | Insert the block before that heading line |
 | `section="<heading>"` | Insert the block at the end of that heading's section |
 | `replace="body"` | Replace everything after the first level-1 heading (used by `CLAUDE.md`) |
@@ -131,8 +132,10 @@ templates themselves have unbalanced markers.
 When adding, rewording, or dropping a rule:
 
 1. Edit the template, keeping markers balanced and one block per fixed unit. New rules
-   that do not replace an existing section need an anchor attribute (`before=` or
-   `section=`), otherwise an old repository cannot place them.
+   that do not replace an existing section need an anchor attribute (`after=`,
+   `before=` or `section=`), otherwise an old repository cannot place them. Prefer
+   `after="<block id>"`: a heading anchor often sits inside another managed block, and
+   the next update of that block would delete what was inserted.
 2. Never put a `{{PLACEHOLDER}}` inside a managed block: an update would copy the
    placeholder into the repository.
 3. Update [document-contracts.md](./document-contracts.md) and the `FIXED_CONTENT`

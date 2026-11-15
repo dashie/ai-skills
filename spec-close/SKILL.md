@@ -18,7 +18,7 @@ spec-review ──reviewed + PASS──► spec-close ──done──► archiv
 ## 0. Pre-flight — the gate
 
 ```
-node <skill-root>/scripts/spec-plan.mjs validate-for close <REF>
+aispec plan validate-for close <REF>
 ```
 
 This requires status `reviewed`, a valid plan structure, and a **latest** `**Verdict**: PASS`
@@ -69,8 +69,8 @@ Do not bump when the repository is unversioned — report `n/a`.
 ## 4. Mark done and archive
 
 ```
-node <skill-root>/scripts/spec-plan.mjs set-status <REF> done
-node <skill-root>/scripts/spec-plan.mjs archive <REF>
+aispec plan set-status <REF> done
+aispec plan archive <REF>
 ```
 
 Archive is only legal from `done`; if the script refuses, fix the status first, never the

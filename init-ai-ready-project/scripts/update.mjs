@@ -11,6 +11,7 @@
  * Attributes steer insertion when the target has no marker yet, which is the case for a
  * repository initialized by an older version of the skill:
  *
+ *     after="<block id>"    insert the block right after that managed block
  *     before="<heading>"    insert the block before that heading line
  *     section="<heading>"   insert the block at the end of that section
  *     replace="body"        replace everything after the first level-1 heading

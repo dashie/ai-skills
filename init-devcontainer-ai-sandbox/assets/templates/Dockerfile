@@ -75,6 +75,10 @@ RUN set -eux; \
 COPY --chown=root:root git-guard.sh /usr/local/bin/git
 RUN chmod 0755 /usr/local/bin/git
 
+# The skills mount provides the script dispatcher; the symlink is created here
+# because /usr/local/bin is root-owned and the post-create script runs unprivileged.
+RUN ln -sfn "/home/${USERNAME}/.copilot/skills/bin/aispec" /usr/local/bin/aispec
+
 USER ${USERNAME}
 WORKDIR /workspace
 

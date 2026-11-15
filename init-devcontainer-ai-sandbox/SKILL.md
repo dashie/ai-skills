@@ -1,6 +1,6 @@
 ---
 name: init-devcontainer-ai-sandbox
-description: 'Initialize the current repository as an isolated Docker dev-container where an AI agent can work unattended for hours with full permissions and no approval prompts. Use when asked to initialize/set up/add a sandbox or dev-container for AI agents, to sandbox/containerize the development environment, to enable autonomous or unattended agent runs, to run Copilot CLI with --allow-all / --yolo safely, or to add a .devcontainer with hardening, a git write guard, and long-run scripts.'
+description: 'Initialize the current repository as an isolated Docker dev-container where an AI agent can work unattended for hours with full permissions and no approval prompts, or remove that setup again. Use when asked to initialize/set up/add a sandbox or dev-container for AI agents, to sandbox/containerize the development environment, to enable autonomous or unattended agent runs, to run Copilot CLI with --allow-all / --yolo safely, to add a .devcontainer with hardening, a git write guard, and long-run scripts, or to uninstall/remove/undo that sandbox configuration from a project.'
 argument-hint: '[stack or extra constraints]'
 ---
 
@@ -22,8 +22,9 @@ The sandbox provides four guarantees:
    continue limits, plus chat-UI permission settings in `devcontainer.json`, so
    neither the CLI nor the chat UI asks for approval every couple of minutes.
 5. **Pre-approved skills tooling**: the Copilot skills repository is bind-mounted
-   read-only at `/home/dev/.copilot/skills`, and running its node scripts is approved
-   in both the chat UI and the CLI, so a skill invocation never stalls a long run.
+   read-only at `/home/dev/.copilot/skills`, its `aispec` dispatcher is on `PATH` via
+   a `/usr/local/bin` symlink, and running it is approved in both the chat UI and the
+   CLI, so a skill invocation never stalls a long run.
 
 Copilot Chat models come from workspace extensions running **inside** the container, so
 model-provider extensions installed on the host (BYOK providers contributing
@@ -38,6 +39,7 @@ otherwise their models are missing from the model picker while the Copilot ones 
   `--dangerously-skip-permissions` without risking the host.
 - A repository already has a dev-container but it mounts `~/.ssh`, the Docker socket,
   or the host home directory — harden it.
+- The user wants to remove, uninstall, or undo the sandbox this skill installed.
 
 ## Deliverables
 
@@ -57,6 +59,10 @@ otherwise their models are missing from the model picker while the Copilot ones 
 Snippets appended to existing documents are delimited by
 `<!-- BEGIN agent-sandbox -->` / `<!-- END agent-sandbox -->` so re-running the skill
 never duplicates text. Files are never overwritten without `--force`.
+
+`uninstall-sandbox.mjs` reverses exactly this set: it deletes the generated files, cuts
+the marked blocks out of `AGENTS.md`, `docs/DEVELOPER-GUIDE.md`, and removes the
+`.gitignore` entry — nothing else.
 
 ## Procedure
 
@@ -84,7 +90,7 @@ Use the `ask_user` tool for these, batching them in one form:
 Derive these instead of asking:
 
 - Copilot Chat model providers already installed on the host:
-  `node ~/.copilot/skills/init-devcontainer-ai-sandbox/scripts/scaffold-sandbox.mjs --detect-model-providers`
+  `aispec sandbox-scaffold --detect-model-providers`
   returns a JSON array of ids. Pass it as `MODEL_PROVIDER_EXTENSIONS`; the script merges
   it into `VSCODE_EXTENSIONS` so those models are available inside the container.
 - Extensions the stack obviously needs (language, linter, formatter) for
@@ -98,7 +104,7 @@ Record the derivation notes in `docs/AGENT-SANDBOX.md` under *Assumptions*.
 ### 3. Fill the values file
 
 ```bash
-node ~/.copilot/skills/init-devcontainer-ai-sandbox/scripts/scaffold-sandbox.mjs --list-variables
+aispec sandbox-scaffold --list-variables
 ```
 
 Write a JSON object with one value per placeholder; see
@@ -108,7 +114,7 @@ values file outside the repository (for example `<session>/files/sandbox-values.
 ### 4. Render
 
 ```bash
-node ~/.copilot/skills/init-devcontainer-ai-sandbox/scripts/scaffold-sandbox.mjs \
+aispec sandbox-scaffold \
   --dest "<repository root>" \
   --values "<values.json>"
 ```
@@ -120,7 +126,7 @@ placeholders, and appends the snippets only when their markers are absent. Use
 ### 5. Verify
 
 ```bash
-node ~/.copilot/skills/init-devcontainer-ai-sandbox/scripts/verify-sandbox.mjs --dest "<repository root>"
+aispec sandbox-verify --dest "<repository root>"
 ```
 
 Static checks: JSONC parses, no `docker.sock`, no host home or SSH mounts, the
@@ -128,8 +134,8 @@ skills repository mounted read-only at `/home/dev/.copilot/skills`, non-root use
 `cap-drop=ALL`, `no-new-privileges`, resource limits, a well-formed
 `customizations.vscode.extensions` list, chat-UI autonomy
 settings (`chat.permissions.default`, `chat.agent.maxRequests`, terminal auto-approve
-map with pattern-based refusals and a `true` pattern for skills node scripts), the
-CLI permissions seed in `post-create.sh` (`node:*` plus the skills directory), the
+map with pattern-based refusals and `aispec` approved), the CLI permissions seed in
+`post-create.sh` (`aispec:*` plus the skills directory), the `aispec` symlink and the
 `git` shim installed in the Dockerfile, the launcher executable, `ping` installed and
 capless with the `ping_group_range` sysctl, the doc sections.
 
@@ -153,6 +159,45 @@ tooling, the exact commands to start a long unattended run, and the remaining ri
 (open egress, model provider outage, quota exhaustion). Do not commit or push
 anything: the user owns Git history.
 
+## Removing the Sandbox
+
+When the user wants the sandbox gone, remove it with the paired uninstaller instead of
+deleting paths by hand: it knows the exact file set the scaffolder writes and leaves the
+project's own content alone.
+
+```bash
+aispec sandbox-uninstall --dest "<repository root>" --dry-run
+aispec sandbox-uninstall --dest "<repository root>"
+```
+
+Always show the `--dry-run` output first: it prints each path with `would remove`,
+`would edit`, `absent`, or `kept`. Apply only after the user agrees with that list.
+
+What it does:
+
+| Target | Action |
+|---|---|
+| `.devcontainer/*`, `.agent/run.sh`, `.agent/goal.md`, `docs/AGENT-SANDBOX.md` | deleted |
+| `AGENTS.md`, `docs/DEVELOPER-GUIDE.md` | the `<!-- BEGIN agent-sandbox -->` … `<!-- END agent-sandbox -->` block is cut out; the file is deleted only when nothing but the generated heading would remain |
+| `.gitignore` | the `# AI sandbox run logs` / `.agent/logs/` pair is removed; the file is deleted when it ends up empty |
+| `.devcontainer/`, `.agent/` | pruned when empty, kept with a `kept … (unrelated content: …)` line otherwise |
+| anything else | never touched |
+
+Safety rules the script enforces and the agent must not work around:
+
+- **Plan then act.** Markers are validated before anything is deleted; a `BEGIN` without
+  `END` (or the reverse) aborts with exit 1 and leaves the project untouched. Report the
+  message and let the user fix the file — do not edit around it.
+- **Only the generated set.** Never delete `.agent/logs/` (run history), a user's own
+  `.devcontainer/` additions, or any document the skill did not write.
+- **Idempotent.** A second run reports `absent` everywhere and exits 0.
+- **Containers first.** If a container or the Dev Containers window still uses the image,
+  say so before removing: stop the container, then uninstall.
+
+After applying, confirm the result with `git status --short` (the diff should contain only
+the deletions and cuts above) and report the removed paths, the kept ones, and what the
+user must do next — the image (`docker build` tag) is not removed by the script.
+
 ## Hard Rules
 
 - **Never mount the Docker socket, the host home, `~/.ssh`, `~/.aws`, `~/.config/gh`,
@@ -164,6 +209,8 @@ anything: the user owns Git history.
 - **Keep the read-only Git policy.** The `git` shim is installed in the image, not
   optional. Document that it is a guardrail, not a jail: isolation comes from Docker.
 - **No silent overwrite.** Existing files require `--force` and user approval.
+- **No silent deletion.** Removal goes through `uninstall-sandbox.mjs` after a `--dry-run`
+  the user approved; never delete sandbox files, documents, or `.gitignore` entries by hand.
 - **English only** in every generated file.
 - **User-owned Git history.** Never commit or push from the host or the sandbox.
 
@@ -174,6 +221,7 @@ anything: the user owns Git history.
 - [Template variables](./references/template-variables.md) — placeholder contract
 - [scaffold-sandbox.mjs](./scripts/scaffold-sandbox.mjs) — renderer
 - [verify-sandbox.mjs](./scripts/verify-sandbox.mjs) — checks
+- [uninstall-sandbox.mjs](./scripts/uninstall-sandbox.mjs) — remover, the reverse of the renderer
 
-Both scripts import the shared helpers from `lib/` at the skills repository root, so
-run them from a full checkout: `node <skill-root>/scripts/<name>.mjs`.
+All scripts import the shared helpers from `lib/` at the skills repository root, so run them from a full checkout through the dispatcher: `aispec <verb>`
+(inside the checkout, `node <skill-root>/scripts/<name>.mjs` works the same).

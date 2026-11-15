@@ -64,6 +64,40 @@ Rules for these documents:
      same three columns as the map above. Keep them outside the managed block so an
      update of this file never drops them. -->
 
+<!-- skill:block:agents-ai-skills after="agents-what-this-is" -->
+## AI skills
+
+Development in this repository uses the GitHub Copilot skills installed at
+`~/.copilot/skills` (or `$COPILOT_HOME/skills` when that variable is set). They are
+tooling that lives outside the repository: run them through `aispec`, never edit them
+from here, and never copy them into the tree.
+
+| Skill | Run it with |
+|---|---|
+| `spec-workflow` | `aispec plan list` |
+| `spec-plan` | `aispec plan ...` |
+| `init-ai-ready-project` | `aispec scaffold`, `aispec update`, `aispec check` |
+| `init-devcontainer-ai-sandbox` | `aispec sandbox-scaffold`, `aispec sandbox-verify`, `aispec sandbox-uninstall` |
+| `spec-implement`, `spec-review`, `spec-close` | Their `SKILL.md`: they drive the workflow, `aispec plan` is their only executable |
+
+`aispec` must be on `PATH`: install it once with `npm link` in `~/.copilot/skills`, or
+add `~/.copilot/skills/bin` to `PATH`. Always go through it rather than `node`, so one
+narrow approval covers every script.
+
+Running it is pre-approved for this repository by the `aispec:*` command approval and
+the skills directory in `allowed_directories` that
+`~/.copilot/permissions-config.json` holds for the repository root. If a run still
+prompts, restore the approval from the repository root:
+
+```sh
+aispec allow
+```
+
+Approvals are per repository and apply to interactive sessions. Non-interactive runs
+(`copilot -p`) ignore them: pass
+`--allow-tool 'shell(aispec:*)' --add-dir ~/.copilot/skills` there instead.
+<!-- skill:end:agents-ai-skills -->
+
 <!-- skill:block:agents-engineering-principles before="## Git standards" -->
 ## Engineering principles
 

@@ -77,7 +77,7 @@ where the agent tooling lives:
 | Path | Role |
 |---|---|
 | `${localEnv:HOME}/.copilot/skills` | Host source of the skills repository, bind-mounted read-only |
-| `/home/dev/.copilot/skills` | Container target of that mount; pre-approved for `node` runs in the chat UI and seeded into the CLI permissions |
+| `/home/dev/.copilot/skills` | Container target of that mount; its `aispec` dispatcher is symlinked to `/usr/local/bin`, pre-approved in the chat UI and seeded into the CLI permissions |
 
 Change the `source` in `.devcontainer/devcontainer.json` by hand if the skills live
 elsewhere on the host; nothing else depends on the host path.

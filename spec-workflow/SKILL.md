@@ -44,7 +44,7 @@ phases.
 | `spec-workflow/` (this skill) | Lifecycle contract, profile discovery, helper script, plan template |
 | `spec-plan/` | Phase 1 — create the plan |
 | `spec-implement/` | Phase 2 — execute the plan |
-| `spec-review/` | Phase 3 — verify, verdict, notes |
+| `spec-review/` | Phase 3 — verify, correct stale documentation, verdict, notes |
 | `spec-close/` | Phase 4 — version, changelog, archive |
 
 `spec-workflow/` holds the shared assets; the four phase skills reference them by relative
@@ -91,7 +91,7 @@ path, so install or copy the whole set together.
 the profile from the repository root discovered from the current working directory:
 
 ```
-node <skill-root>/scripts/spec-plan.mjs config
+aispec plan config
 ```
 
 The script imports the shared helpers from `lib/` at the skills repository root, so

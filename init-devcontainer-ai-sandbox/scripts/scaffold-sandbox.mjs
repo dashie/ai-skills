@@ -22,15 +22,18 @@ import {
   substitute,
 } from "../../lib/template.mjs";
 import { padEnd, pyJsonDumps, writeErr, writeOut } from "../../lib/text.mjs";
+import {
+  APPEND_TARGETS,
+  BEGIN_MARKER,
+  END_MARKER,
+  GITIGNORE_ENTRY,
+  TARGETS,
+} from "./sandbox-layout.mjs";
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const SKILL_ROOT = path.dirname(SCRIPT_DIR);
 const TEMPLATE_ROOT = path.join(SKILL_ROOT, "assets", "templates");
 const SNIPPET_ROOT = path.join(SKILL_ROOT, "assets", "snippets");
-
-const BEGIN_MARKER = "<!-- BEGIN agent-sandbox -->";
-const END_MARKER = "<!-- END agent-sandbox -->";
-const GITIGNORE_ENTRY = ".agent/logs/";
 
 // Optional keys accepted in the values file but not present in any template.
 const OPTIONAL_KEYS = new Set(["MODEL_PROVIDER_EXTENSIONS"]);
@@ -44,24 +47,6 @@ const EXTENSION_DIRS = [
   "~/.vscode-insiders/extensions",
   "~/.vscode-server/extensions",
   "~/.vscode-remote/extensions",
-];
-
-// template -> [destination, executable]
-const TARGETS = [
-  ["devcontainer.json", ".devcontainer/devcontainer.json", false],
-  ["Dockerfile", ".devcontainer/Dockerfile", false],
-  ["stack-tools.sh", ".devcontainer/stack-tools.sh", true],
-  ["post-create.sh", ".devcontainer/post-create.sh", true],
-  ["git-guard.sh", ".devcontainer/git-guard.sh", true],
-  ["run.sh", ".agent/run.sh", true],
-  ["goal.md", ".agent/goal.md", false],
-  ["docs/AGENT-SANDBOX.md", "docs/AGENT-SANDBOX.md", false],
-];
-
-// destination document -> [snippet, heading used when the file is created]
-const APPEND_TARGETS = [
-  ["AGENTS.md", "agents-append.md", "# {project} - Agent Instructions"],
-  ["docs/DEVELOPER-GUIDE.md", "developer-guide-append.md", "# Developer Guide - {project}"],
 ];
 
 function write(target, content, mode = 0o644) {

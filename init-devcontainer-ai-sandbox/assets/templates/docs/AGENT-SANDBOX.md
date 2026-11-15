@@ -135,13 +135,14 @@ container: /home/dev/.copilot/skills   (bind mount, read-only)
 - **Read-only on purpose.** The skills are tooling, not project code: the agent must
   not rewrite the scripts it is executing, and a broken skill must not become a
   committed change.
+- **One command.** The skills are reached through `aispec`, the dispatcher inside the
+  mount, symlinked to `/usr/local/bin/aispec` by the Dockerfile. Approving that one
+  command keeps the grant narrow: approving `node` would approve every node script.
 - **Chat UI.** `chat.tools.terminal.autoApprove` in `devcontainer.json` approves
-  `node` invocations of a script under a `skills/` directory:
-  `/^node\s+\S*\/skills\/\S+\.(mjs|js)(\s|$)/`. Other `node` commands still follow
-  the general policy.
+  `aispec`. Other commands still follow the general policy.
 - **CLI.** `.devcontainer/post-create.sh` seeds
-  `$COPILOT_HOME/permissions-config.json` on first creation with `node:*` command
-  approvals for `/workspace` and `/home/dev/.copilot/skills` in
+  `$COPILOT_HOME/permissions-config.json` on first creation with an `aispec:*` command
+  approval for `/workspace` and `/home/dev/.copilot/skills` in
   `allowed_directories`. `--allow-all` in `.agent/run.sh` covers the rest of the run.
 - **Not pre-approved.** `rm`, `curl`, `wget`, `kill`, `chmod`, `chown`, and every
   Git history command, exactly as before. The skills mount changes nothing about the
@@ -167,7 +168,7 @@ and `.devcontainer/devcontainer.json` sets them in `customizations.vscode.settin
 |---|---|---|
 | `chat.permissions.default` | `autoApprove` | New sessions start without asking for every tool || `chat.agent.maxRequests` | `300` | The default (25) stops long runs early |
 | `chat.tools.terminal.enableAutoApprove` | `true` | Terminal commands run without confirmation |
-| `chat.tools.terminal.autoApprove` | map with `true` for `node` runs of a script under `skills/`, and `false` for `rm`, `curl`, `wget`, `kill`, `chmod`, `chown`, plus a regex blocking `git commit/push/tag/merge/rebase/reset/clean` | Skills scripts and ordinary work run; destructive and history-changing commands still ask |
+| `chat.tools.terminal.autoApprove` | map with `true` for `aispec`, and `false` for `rm`, `curl`, `wget`, `kill`, `chmod`, `chown`, plus a regex blocking `git commit/push/tag/merge/rebase/reset/clean` | Skills scripts and ordinary work run; destructive and history-changing commands still ask |
 | `git.enableCommitSigning` | `false` | No signing key exists in the sandbox |
 
 `chat.tools.global.autoApprove: true` would approve everything at once; it explicitly

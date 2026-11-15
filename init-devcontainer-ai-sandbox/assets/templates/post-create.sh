@@ -40,9 +40,9 @@ EOF
 fi
 
 # The skills repository is mounted read-only at $skills_dir. The CLI pre-approves
-# running node scripts and reading that directory, so an unattended run does not
-# stop on a command or path prompt; the same allowance is set for the chat UI in
-# devcontainer.json. An existing file is never rewritten.
+# the `aispec` dispatcher and read access to that directory, so an unattended run
+# does not stop on a command or path prompt; the same allowance is set for the chat
+# UI in devcontainer.json. An existing file is never rewritten.
 if [ ! -f "$permissions_config" ]; then
   cat > "$permissions_config" <<EOF
 {
@@ -51,7 +51,7 @@ if [ ! -f "$permissions_config" ]; then
       "tool_approvals": [
         {
           "kind": "commands",
-          "commandIdentifiers": ["node:*"]
+          "commandIdentifiers": ["aispec:*"]
         }
       ],
       "allowed_directories": ["$skills_dir"]
@@ -59,7 +59,7 @@ if [ ! -f "$permissions_config" ]; then
   }
 }
 EOF
-  echo "==> pre-approved node scripts and $skills_dir in $permissions_config"
+  echo "==> pre-approved aispec and $skills_dir in $permissions_config"
 else
   echo "==> keeping the existing $permissions_config"
 fi

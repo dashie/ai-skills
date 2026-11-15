@@ -77,6 +77,31 @@ Fixed rules for adding anything to this project:
   other modules replaced by fakes.
 <!-- skill:end:devguide-design-rules -->
 
+<!-- skill:block:devguide-ai-skills after="devguide-design-rules" -->
+## AI skills
+
+Development uses the GitHub Copilot skills installed at `~/.copilot/skills`; they are
+tooling outside this repository, so the agent runs them through `aispec` and never
+edits them here. Install the command once with `npm link` in `~/.copilot/skills`, or
+add `~/.copilot/skills/bin` to `PATH`.
+
+| Need | Command, from the repository root |
+|---|---|
+| List the open tech plans | `aispec plan list` |
+| Render, update, or verify this documentation | `aispec scaffold`, `aispec update`, `aispec check` |
+| Approve the skills for this repository | `aispec allow` |
+| Remove that approval | `aispec allow --remove` |
+
+The approval adds a `locations` entry to `~/.copilot/permissions-config.json` for the
+repository root — `aispec:*` in `tool_approvals` and the skills directory in
+`allowed_directories` — which is what lets the agent run the skills without a prompt
+each time. Naming the dispatcher keeps the grant narrow: approving `node:*` would
+approve every node script instead. It is per repository: run it once in every checkout,
+and this repository was approved when its documentation was generated. Saved approvals
+do not apply to non-interactive runs; there, pass
+`--allow-tool 'shell(aispec:*)' --add-dir ~/.copilot/skills`.
+<!-- skill:end:devguide-ai-skills -->
+
 <!-- skill:block:devguide-git-standards -->
 ## Git Standards
 
