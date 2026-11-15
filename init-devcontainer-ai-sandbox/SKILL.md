@@ -43,6 +43,10 @@ otherwise their models are missing from the model picker while the Copilot ones 
 
 ## Deliverables
 
+`agent-sandbox.md` is an additional document, not one of the six default `docs/`
+files installed by `init-ai-ready-project`, so it uses ordinary lowercase filename
+casing.
+
 | File | Role |
 |---|---|
 | `.devcontainer/devcontainer.json` | Container definition, mounts (including the read-only skills mount), limits, chat-UI autonomy settings |
@@ -52,7 +56,7 @@ otherwise their models are missing from the model picker while the Copilot ones 
 | `.devcontainer/git-guard.sh` | `git` shim installed as `/usr/local/bin/git` in the image |
 | `.agent/goal.md` | Template for the objective of an autonomous run |
 | `.agent/run.sh` | Unattended launcher: log, timeout, detach, resume |
-| `docs/AGENT-SANDBOX.md` | Threat model, first run, autonomy flags, recovery |
+| `docs/agent-sandbox.md` | Threat model, first run, autonomy flags, recovery |
 | `AGENTS.md` | Appended section: sandbox rules and the read-only Git policy |
 | `docs/DEVELOPER-GUIDE.md` | Appended section: how to run the sandbox |
 
@@ -71,7 +75,7 @@ the marked blocks out of `AGENTS.md`, `docs/DEVELOPER-GUIDE.md`, and removes the
 - Detect the stack from manifests: `package.json`, `pyproject.toml`, `go.mod`,
   `Cargo.toml`, `pom.xml`, `build.gradle*`, `*.csproj`, `Gemfile`, `composer.json`.
 - Check for an existing `.devcontainer/` and for `AGENTS.md`,
-  `docs/DEVELOPER-GUIDE.md`, `docs/AGENT-SANDBOX.md`.
+  `docs/DEVELOPER-GUIDE.md`, `docs/agent-sandbox.md`.
 - Refuse to continue silently if `.devcontainer/` exists: report the difference and
   ask before overwriting.
 
@@ -99,7 +103,7 @@ Derive these instead of asking:
   at `/home/dev/.copilot/skills` and pre-approved for `node` runs. Keep it unless the
   user says the skills live elsewhere; ask only when that host path does not exist.
 
-Record the derivation notes in `docs/AGENT-SANDBOX.md` under *Assumptions*.
+Record the derivation notes in `docs/agent-sandbox.md` under *Assumptions*.
 
 ### 3. Fill the values file
 
@@ -177,7 +181,7 @@ What it does:
 
 | Target | Action |
 |---|---|
-| `.devcontainer/*`, `.agent/run.sh`, `.agent/goal.md`, `docs/AGENT-SANDBOX.md` | deleted |
+| `.devcontainer/*`, `.agent/run.sh`, `.agent/goal.md`, `docs/agent-sandbox.md` | deleted |
 | `AGENTS.md`, `docs/DEVELOPER-GUIDE.md` | the `<!-- BEGIN agent-sandbox -->` … `<!-- END agent-sandbox -->` block is cut out; the file is deleted only when nothing but the generated heading would remain |
 | `.gitignore` | the `# AI sandbox run logs` / `.agent/logs/` pair is removed; the file is deleted when it ends up empty |
 | `.devcontainer/`, `.agent/` | pruned when empty, kept with a `kept … (unrelated content: …)` line otherwise |

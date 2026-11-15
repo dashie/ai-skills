@@ -20,7 +20,7 @@ export const TARGETS = [
   ["git-guard.sh", ".devcontainer/git-guard.sh", true],
   ["run.sh", ".agent/run.sh", true],
   ["goal.md", ".agent/goal.md", false],
-  ["docs/AGENT-SANDBOX.md", "docs/AGENT-SANDBOX.md", false],
+  ["docs/agent-sandbox.md", "docs/agent-sandbox.md", false],
 ];
 
 // destination document -> [snippet, heading used when the file is created]

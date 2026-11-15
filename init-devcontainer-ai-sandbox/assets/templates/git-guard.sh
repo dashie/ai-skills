@@ -4,7 +4,7 @@
 # Installed as /usr/local/bin/git, which precedes /usr/bin/git in PATH. Every
 # history-changing subcommand is refused; everything read-only passes through.
 # This is a guardrail for a cooperative agent, not a jail: real isolation comes
-# from the container. See docs/AGENT-SANDBOX.md.
+# from the container. See docs/agent-sandbox.md.
 set -uo pipefail
 
 BLOCKED_SUBCOMMANDS="commit push tag merge rebase reset clean cherry-pick revert filter-branch update-ref"

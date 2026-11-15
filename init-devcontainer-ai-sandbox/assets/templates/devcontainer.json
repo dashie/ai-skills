@@ -1,6 +1,6 @@
 // AI sandbox for {{PROJECT_NAME}}.
 // Isolation model: no host home, no Docker socket, no credentials, non-root user,
-// dropped capabilities, bounded resources. See docs/AGENT-SANDBOX.md.
+// dropped capabilities, bounded resources. See docs/agent-sandbox.md.
 {
   "name": "{{PROJECT_NAME}} - AI sandbox",
 

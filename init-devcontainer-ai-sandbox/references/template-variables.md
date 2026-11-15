@@ -66,7 +66,7 @@ node scripts/scaffold-sandbox.mjs --detect-model-providers
 ```
 
 The script appends them to `VSCODE_EXTENSIONS` without duplicates. See the
-*Third-party model providers* section of `docs/AGENT-SANDBOX.md` for the API-key and
+*Third-party model providers* section of `docs/agent-sandbox.md` for the API-key and
 egress consequences.
 
 ## Fixed paths

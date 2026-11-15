@@ -80,6 +80,6 @@ cat <<'EOF'
     Git history is read-only: `git commit`, `git push`, `git tag`, `git merge`,
     `git rebase`, `git reset` and `git clean` are refused by /usr/local/bin/git.
     Long unattended runs: bash .agent/run.sh --detach
-    Details: docs/AGENT-SANDBOX.md
+    Details: docs/agent-sandbox.md
 
 EOF

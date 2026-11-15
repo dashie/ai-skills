@@ -49,6 +49,10 @@ Exactly these files, rendered from the templates in [assets/templates](./assets/
 Never add other files. Never generate a different document set unless the user
 explicitly asks.
 
+The six default documents this skill installs under `docs/` use fully uppercase
+filenames, exactly as listed above. Any other documentation file under `docs/` must use
+ordinary filename casing (for example, `project-notes.md`), not an all-uppercase name.
+
 The scaffold also records one thing **outside** the destination: the approval that lets
 an agent run the skill scripts in that repository without a prompt each time, written as
 a location entry in `~/.copilot/permissions-config.json` (see

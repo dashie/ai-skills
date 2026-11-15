@@ -53,6 +53,10 @@ document you need before changing behaviour.
 Rules for these documents:
 
 - They are written in English, in Markdown, and use the exact paths above.
+- The six default documents installed by `init-ai-ready-project` under `docs/` use
+  fully uppercase filenames, exactly as listed above. Any other documentation file
+  under `docs/` uses ordinary filename casing (for example, `project-notes.md`), not
+  an all-uppercase name.
 - They are the source of truth. When code and document disagree, fix whichever is
   wrong in the same change; never leave the contradiction in place.
 - Never duplicate a definition. A term lives in the glossary, a decision lives in the

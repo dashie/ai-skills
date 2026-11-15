@@ -23,6 +23,6 @@ credentials, non-root user, dropped capabilities, bounded resources.
   embed credentials.
 - Everything written in this repository is in English.
 
-Threat model, limits, and recovery: [docs/AGENT-SANDBOX.md](./docs/AGENT-SANDBOX.md).
+Threat model, limits, and recovery: [docs/agent-sandbox.md](./docs/agent-sandbox.md).
 
 <!-- END agent-sandbox -->

@@ -12,7 +12,7 @@
 #   -p PROMPT                programmatic run, exits when the objective is done
 #
 # Enterprise policy can suppress the allow-all flags; the CLI then prints a policy
-# warning and keeps asking for permissions. See docs/AGENT-SANDBOX.md.
+# warning and keeps asking for permissions. See docs/agent-sandbox.md.
 set -euo pipefail
 
 ORIGINAL=("$@")

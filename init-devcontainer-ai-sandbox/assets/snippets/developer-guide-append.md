@@ -21,6 +21,6 @@ bind mounts are the worktree and the read-only skills repository at
 read-only: the image ships a `git` guard that refuses history-changing subcommands,
 so the agent prepares the change and the user commits on the host.
 
-Details: [AGENT-SANDBOX.md](./AGENT-SANDBOX.md).
+Details: [agent-sandbox.md](./agent-sandbox.md).
 
 <!-- END agent-sandbox -->
