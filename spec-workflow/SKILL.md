@@ -46,9 +46,15 @@ phases.
 | `spec-implement/` | Phase 2 — execute the plan |
 | `spec-review/` | Phase 3 — verify, correct stale documentation, verdict, notes |
 | `spec-close/` | Phase 4 — version, changelog, archive |
+| `spec-fast/` | Fast lane — implement, review, and record a small change retrospectively |
 
-`spec-workflow/` holds the shared assets; the four phase skills reference them by relative
-path, so install or copy the whole set together.
+`spec-workflow/` holds the shared assets; the phase skills and fast lane reference them by
+relative path, so install or copy the whole set together.
+
+The optional `spec-fast <description>` lane implements a small, low-impact change before
+writing its retrospective plan. It performs a review, records the evidence in a compatible
+plan, and leaves it open for further iterations. Closing still requires a fresh PASS and
+the user's explicit `spec-close` request.
 
 ## Status gates
 
@@ -66,11 +72,15 @@ path, so install or copy the whole set together.
 ## Non-negotiable rules
 
 1. **One phase per invocation.** A phase skill never starts the next phase. It stops and
-   names the exact command for the user to run.
-2. **The plan file is the state.** Never infer progress from chat history; read the plan.
-   Progress lives in the checklist, notes sections, and frontmatter.
-3. **The user owns transitions.** Never auto-chain phases, never mark `reviewed` without a
-   review, never mark `done` without a PASS verdict.
+   names the exact command for the user to run. The separate `spec-fast` skill is the
+   explicit exception for small changes: it implements, reviews and records in one
+   invocation, but never closes automatically.
+2. **The plan file is the state.** Once the plan exists, never infer progress from chat
+   history; read the plan. Progress lives in the checklist, notes sections, and frontmatter.
+   `spec-fast` records its first iteration retrospectively.
+3. **The user owns transitions.** Only an explicit `spec-fast` request authorizes its
+   implement-and-review sequence; never mark `reviewed` without a review or `done` without
+   a PASS verdict and an explicit close request.
 4. **No Git writes.** Skills never run `commit`, `push`, `tag`, `merge`, or `rebase` unless
    the profile explicitly sets `git.allow_writes: true`. They only *suggest* a commit
    message.
@@ -157,6 +167,7 @@ after approval.
 
 | User intent | Skill |
 |---|---|
+| Implement and review a small change, then record it retrospectively | `spec-fast` |
 | Plan a feature, fix, refactor, or CVE/security remediation | `spec-plan` |
 | Execute an approved plan | `spec-implement` |
 | Review a completed implementation | `spec-review` |

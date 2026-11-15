@@ -258,6 +258,26 @@ try {
   run("spec-plan: validate", S.specPlan, ["validate", "001", "--strict"], { cwd: planRepo });
   run("spec-plan: gate implement", S.specPlan, ["validate-for", "implement", "001"], { cwd: planRepo });
   run("spec-plan: config", S.specPlan, ["config"], { cwd: planRepo });
+
+  // A retrospective record follows the existing review and close gates across iterations.
+  const planFile = path.join(planRepo, "tech-plans", "001-smoke.md");
+  run("spec-fast: start retrospective record", S.specPlan, ["set-status", "001", "in-progress"], { cwd: planRepo });
+  run("spec-fast: gate review", S.specPlan, ["validate-for", "review", "001"], { cwd: planRepo });
+  run("spec-fast: no close before review", S.specPlan, ["validate-for", "close", "001"], { cwd: planRepo, expect: 1 });
+  fs.appendFileSync(planFile, "\n## Review Notes\n\n- **Verdict**: PASS\n", "utf8");
+  run("spec-fast: mark reviewed", S.specPlan, ["set-status", "001", "reviewed"], { cwd: planRepo });
+  run("spec-fast: close gate after PASS", S.specPlan, ["validate-for", "close", "001"], { cwd: planRepo });
+  run("spec-fast: invalidate prior review", S.specPlan, ["set-status", "001", "in-progress"], { cwd: planRepo });
+  run("spec-fast: no close during iteration", S.specPlan, ["validate-for", "close", "001"], { cwd: planRepo, expect: 1 });
+  fs.appendFileSync(planFile, "\n## Review Notes\n\n- **Verdict**: NEEDS WORK\n", "utf8");
+  run("spec-fast: simulate stale reviewed status", S.specPlan, ["set-status", "001", "reviewed"], { cwd: planRepo });
+  run("spec-fast: latest NEEDS WORK blocks close", S.specPlan, ["validate-for", "close", "001"], { cwd: planRepo, expect: 1 });
+  run("spec-fast: resume iteration", S.specPlan, ["set-status", "001", "in-progress"], { cwd: planRepo });
+  fs.appendFileSync(planFile, "\n## Review Notes\n\n- **Verdict**: PASS\n", "utf8");
+  run("spec-fast: complete checklist", S.specPlan, ["checklist", "001"], { cwd: planRepo });
+  run("spec-fast: validate completed record", S.specPlan, ["validate", "001", "--strict"], { cwd: planRepo });
+  run("spec-fast: mark fresh review", S.specPlan, ["set-status", "001", "reviewed"], { cwd: planRepo });
+  run("spec-fast: close gate after fresh PASS", S.specPlan, ["validate-for", "close", "001"], { cwd: planRepo });
 } finally {
   fs.rmSync(work, { recursive: true, force: true });
 }

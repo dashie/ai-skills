@@ -44,7 +44,7 @@ git clone <repository-url> ~/.copilot/skills
 Replace `<repository-url>` with the URL of your accessible copy of this
 repository. If `~/.copilot/skills` already exists, do not clone over it: copy
 the skill directories from a separate clone into it, preserving any existing
-skills. Check for name conflicts before copying. Keep all five `spec-*`
+skills. Check for name conflicts before copying. Keep all six `spec-*`
 directories together because they reference one another, and always copy the
 `lib/` directory alongside the skill directories: every script imports the
 shared library from there.
@@ -101,6 +101,7 @@ your request in chat. You can name a skill explicitly, for example:
 | `init-ai-ready-project` | “Use init-ai-ready-project to set up documentation for this project.” |
 | `init-devcontainer-ai-sandbox` | “Use init-devcontainer-ai-sandbox to set up an agent sandbox.” |
 | `spec-workflow` | “Use spec-workflow to show the open plans.” |
+| `spec-fast` | “spec-fast fix the typo in the help output.” |
 | `spec-plan` | “Use spec-plan to plan this feature.” |
 | `spec-implement` | “Use spec-implement to execute plan 001.” |
 | `spec-review` | “Use spec-review to review plan 001.” |
@@ -109,6 +110,12 @@ your request in chat. You can name a skill explicitly, for example:
 The spec workflow runs in order: **plan → implement → review → close**. Each
 phase stops and tells you what to do next; review can send work back to
 implementation, and corrects the documentation the change made stale.
+
+For a small, well-defined, low-impact change, `spec-fast <description>` implements and
+reviews immediately, then records the request, decisions, checks and review in a concise
+retrospective plan. The plan stays open: ask for further iterations as needed, and run
+`spec-close <plan>` only when satisfied. Each substantive iteration requires a fresh review;
+larger, risky or ambiguous work should use the normal `spec-plan` workflow.
 
 ## One command for every skill
 
