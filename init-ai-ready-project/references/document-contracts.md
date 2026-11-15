@@ -221,6 +221,9 @@ Codex.
   their scripts are tooling run with `node` and never edited from this repository, and
   how to restore the permission approval (`aispec allow`) when a run still
   prompts. Name the skills, do not document them in detail: their own `SKILL.md` does.
+- The **tech plan** rule, fixed and non-negotiable: a plan is created only on an explicit
+  `spec-plan` request, never on the agent's own initiative; while a plan is open,
+  additional work the user asks for is added to that plan instead of starting a second one.
 
 ## CLAUDE.md
 

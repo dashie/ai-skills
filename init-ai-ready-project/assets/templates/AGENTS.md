@@ -106,6 +106,25 @@ Approvals are per repository and apply to interactive sessions. Non-interactive 
 `--allow-tool 'shell(aispec:*)' --add-dir ~/.copilot/skills` there instead.
 <!-- skill:end:agents-ai-skills -->
 
+<!-- skill:block:agents-plan-creation after="agents-ai-skills" -->
+## Tech plans: user-requested only
+
+Never create a tech plan on your own initiative. A plan file exists only when the user
+explicitly asks for one with `spec-plan`. Finding a defect, a missing test, stale
+documentation, or work worth doing is reported to the user; it never becomes a plan
+unprompted, and it never arrives as a "draft plan" in a reply.
+
+While a plan is open — `draft`, `in-progress`, or `reviewed` — any additional activity
+the user asks for belongs to that plan: add the steps, the files they touch under
+*Affected modules*, and the matching checklist items, then record the addition in
+`## Implementation Notes` as user-approved. Never open a second plan beside an active
+one, and never start a new plan to hold work the active plan can carry.
+
+After a plan is closed, a follow-up becomes a new plan only when the user asks for it
+with `spec-plan`; otherwise it is a plain change. A closed plan is history and is never
+reopened.
+<!-- skill:end:agents-plan-creation -->
+
 <!-- skill:block:agents-engineering-principles before="## Git standards" -->
 ## Engineering principles
 

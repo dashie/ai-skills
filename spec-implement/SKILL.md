@@ -20,6 +20,11 @@ The gate accepts `draft` (new run) and `in-progress` (resume), rejects everythin
 verifies that every `depends_on` plan is `done`. If it fails: stop, report the exact error,
 name the command that is allowed instead. Never force it.
 
+A `reviewed` plan the user wants to extend is the one exception, and it is handled by the
+helper rather than by forcing the gate: run `aispec plan set-status <REF> in-progress`
+first — the previous PASS no longer authorizes close — then run the gate again and extend
+the plan per §5. Never create a second plan for the added work.
+
 `<skill-root>` is the `spec-workflow` skill directory
 (`~/.copilot/skills/spec-workflow` for a user-scope install). Read the profile and quality
 commands from `.spec-workflow.yml` per
@@ -82,7 +87,8 @@ If the plan contains a `🔶 CHECKPOINT CP-N` block, stop when you reach it:
 - Modify only files listed under `## Affected modules`. Files marked `(maybe)` need explicit
   permission.
 - New out-of-scope file needed? Stop and ask. State the file, the reason, and the smallest
-  alternative.
+  alternative. Once the user approves, add the file to `## Affected modules` (see §5) and
+  continue — never start a second plan for it.
 - Pre-existing failures in a touched module are yours to fix; failures in untouched modules
   are reported, not fixed.
 - Do not delete or rewrite unrelated code, comments, formatting, or configuration.
@@ -96,11 +102,19 @@ append on later runs). Log everything the next reader needs:
 - **Deviations** — a different approach forced by reality; say what the plan said and why it
   changed.
 - **Discoveries** — pre-existing defects, missing docs, surprising behaviour encountered.
-- **Extensions** — anything added beyond the plan, and who approved it.
+- **Extensions** — anything the user asked for beyond the plan during implementation,
+  recorded as user-approved together with the steps and files you added for it.
 
-You may add or update `## Implementation Notes` freely. You may **not** edit goals, steps,
-affected modules, or the checklist structure. If the plan itself is wrong, stop and ask the
-user to revise it with `spec-plan`.
+You may add or update `## Implementation Notes` freely. You may also extend the plan when
+the user asks for more work while implementing it: add the new steps, add the files they
+touch to *Affected modules*, add the matching checklist items, and record the addition
+under **Extensions** above. That is the required response — never create a new plan for
+such work and never open a second plan beside this one.
+
+Everything else in the plan file is fixed: do not rewrite or remove goals, existing steps,
+affected modules, or ticked checklist items on your own. If the plan's intent is wrong,
+stop and report; the user decides whether the plan is revised. Creating a plan is
+`spec-plan`'s job and happens only on the user's explicit request.
 
 ## 6. Final gate
 
@@ -147,7 +161,8 @@ Status `in-progress` means someone started before. Then:
   checklist/progress checks, and status changes. Do not invent ad-hoc shell commands or
   manually reproduce a helper check; if the helper is unavailable or lacks the required
   operation, stop and report the blocker.
-- Never create plans, change plan intent, or bump versions.
+- Never create plans, change plan intent, or bump versions. Additional work the user asks
+  for is added to the active plan (§5), never to a new one.
 - Never review, score, or close the work; that is a separate phase with its own gate.
 - Never run `git commit`, `git push`, or any history-changing Git command unless the profile
   sets `git.allow_writes: true`; suggest a commit message instead.

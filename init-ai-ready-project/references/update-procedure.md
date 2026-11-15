@@ -32,6 +32,8 @@ The markers are the contract. Prose outside them is never rewritten by
 | `AGENTS.md` | `agents-intro` | The "single source of truth" paragraph |
 | `AGENTS.md` | `agents-english-only` | The English-only rule for produced artefacts; input may be any language |
 | `AGENTS.md` | `agents-what-this-is` | Document map and rules for the documents |
+| `AGENTS.md` | `agents-ai-skills` | How the skills are installed, run, and approved |
+| `AGENTS.md` | `agents-plan-creation` | Tech plans only on an explicit `spec-plan` request; extra work joins the active plan |
 | `AGENTS.md` | `agents-engineering-principles` | KISS, modularity, tests with every change |
 | `AGENTS.md` | `agents-git-standards` | Conventional Commits summary |
 | `AGENTS.md` | `agents-git-approval` | User-approved Git changes only |

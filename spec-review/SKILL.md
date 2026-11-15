@@ -62,7 +62,7 @@ Check each row, in this order. Record evidence, not impressions.
 | # | Check | Failure severity |
 |---|---|---|
 | 1 | Every goal in `## Goals` is achieved and observable | blocker |
-| 2 | Scope: diff files ⊆ `## Affected modules` (or approved in Implementation Notes) | major |
+| 2 | Scope: diff files ⊆ `## Affected modules` (or user-approved additions recorded in Implementation Notes) | major |
 | 3 | Quality suite green | blocker |
 | 4 | New/changed behaviour has tests that exercise real code paths | major |
 | 5 | No existing test was weakened, skipped, or deleted without approval | major |
@@ -112,7 +112,8 @@ For each plan goal and each plan step, mark `done` / `partial` / `missing` with 
 Then list:
 
 - **Deviations** — documented in Implementation Notes? legitimate?
-- **Additions** — beyond plan, approved? worth keeping?
+- **Additions** — beyond plan, approved by the user and added to this plan? worth keeping?
+  Work moved into a separate plan instead of this one is itself a finding.
 - **Deferred** — planned but dropped; is the reason acceptable and recorded?
 - **Known limitations** — what the change does not solve.
 
@@ -224,7 +225,9 @@ Rules for the block:
 ## 8. Update the status
 
 - **PASS** → `aispec plan set-status <REF> reviewed`, then tell
-  the user to run `spec-close <NNN>`.
+  the user to run `spec-close <NNN>`. If the user asks for additional work instead, that work
+  joins this plan: `spec-implement` moves it back to `in-progress` and extends it — never a
+  new plan.
 - **NEEDS WORK** → leave the status as `in-progress` (do **not** change it), and tell the user
   to run `spec-implement <NNN>` to address the findings, then `spec-review <NNN>` again. When
   every open finding is small and mechanical, offer `spec-implement-and-review <NNN>` instead:
@@ -244,7 +247,8 @@ summary of what the code does.
   stop and report the blocker.
 - Review only. Never rewrite production code, tests, or the plan, never archive. The sole
   edits a reviewer makes are the documentation corrections in §6 and the approved minor
-  fixes.
+  fixes. Never create a plan, and never propose a new plan for work that belongs to the plan
+  under review: route it to `spec-implement` as an addition to this plan.
 - Never mark `reviewed` without a fresh PASS backed by executed commands.
 - Never approve out-of-scope changes retroactively — require the user's explicit decision.
 - Never modify existing tests, and never fix code issues outside the approved minor list.

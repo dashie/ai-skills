@@ -78,6 +78,8 @@ const FIXED_CONTENT = {
     "Tests ship with the change",
     "## AI skills",
     "aispec allow",
+    "## Tech plans: user-requested only",
+    "Never create a tech plan on your own initiative",
     "PlantUML",
   ],
   "CONTRIBUTING.md": [

@@ -1,6 +1,6 @@
 ---
 name: spec-plan
-description: 'Create a tech plan — the spec document that must exist before any code is written — for a feature, bug fix, refactor, performance, documentation, test, or CVE/security remediation. Use when the user asks to plan a change, says "spec-plan", "piano tecnico", "tech plan", "progetta questa feature", "fammi un piano", wants an implementation plan for an issue, or wants to assess a CVE / dependency vulnerability and decide the remediation strategy. Interviews the user, checks for duplicate plans and dependencies, assesses scope, writes and validates the plan file, and stops before implementation. It never writes or reviews code.'
+description: 'Create a tech plan — the spec document that must exist before any code is written — for a feature, bug fix, refactor, performance, documentation, test, or CVE/security remediation. Use when the user asks to plan a change, says "spec-plan", "piano tecnico", "tech plan", "progetta questa feature", "fammi un piano", wants an implementation plan for an issue, or wants to assess a CVE / dependency vulnerability and decide the remediation strategy. Interviews the user, checks for duplicate plans and dependencies, assesses scope, writes and validates the plan file, and stops before implementation. It never writes or reviews code, and it never creates a plan unless the user explicitly asks for one with spec-plan.'
 argument-hint: '<change description, issue reference, or CVE id>'
 ---
 
@@ -16,6 +16,17 @@ spec-plan ──draft──► spec-implement ──in-progress──► spec-re
 ```
 
 You create the `draft` plan and stop. You never implement, never review, never close.
+
+## Invocation rule
+
+You run only when the user explicitly asks for a plan with `spec-plan`. Never create,
+draft, or propose a plan on your own initiative — not after reading code, not after
+finding a defect, a missing test, or stale documentation. Report the finding instead and
+let the user decide.
+
+If a plan is already open, do not create a second one. Additional work the user asks for
+joins the open plan through `spec-implement`; a new plan is an explicit user choice, not
+an inference from the request.
 
 ## 0. Resolve the project profile
 
@@ -75,8 +86,10 @@ options they gain, lose, or see change.
 ## 3. Duplicate and dependency check
 
 1. `spec-plan.mjs list --status all` — read titles and types.
-2. If an existing plan covers the same change, show it and ask: extend it, supersede it, or
-   cancel the new plan. **Do not create a duplicate.**
+2. If an open plan covers the same change, or the request arrived while that plan is being
+   implemented, show it and offer to extend it — the normal outcome — or to supersede it or
+   cancel the new request. Extending happens in `spec-implement`, not in a new file.
+   **Do not create a duplicate or a second parallel plan.**
 3. If an existing open plan is a prerequisite, record its number in `depends_on`. A
    dependency must reach `done` before this plan can be implemented.
 4. If a plan conflicts with this change (same files, opposite intent), surface the conflict
@@ -182,6 +195,8 @@ next command — `spec-implement <NNN>`. Stop there.
   duplicate checks, validation, and status changes. Do not invent ad-hoc shell commands or
   manually reproduce a helper check; if the helper is unavailable or lacks the required
   operation, stop and report the blocker.
+- Never create a plan unless the user explicitly asked for one with `spec-plan`, and never
+  create a second plan beside an open one: additional work joins the active plan.
 - Write only inside the plan directory. Never touch source, tests, configuration, or other
   documentation while planning.
 - Never change a plan's `status` by hand; only `spec-plan.mjs set-status` may move it.

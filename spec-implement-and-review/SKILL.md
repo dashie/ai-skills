@@ -140,7 +140,9 @@ findings by severity, verdict, next command. Factual, no praise, no tour of the 
   Never hand-edit status or reproduce a helper check; if the helper cannot do it, stop and
   report the blocker.
 - Never plan, create a plan, revise plan intent, bump a version, write a changelog, archive,
-  or run a history-changing Git command. Closing belongs to `spec-close`.
+  or run a history-changing Git command. Closing belongs to `spec-close`. New work the user
+  asks for during this lane is added to the active plan through `spec-implement`, never to a
+  new plan.
 - Never mark `reviewed` without a fresh PASS backed by commands you executed in this
   invocation.
 - Never skip the review pass, never merge it into the fix pass, and never let it fix blockers

@@ -123,8 +123,9 @@ Beyond the generic steps:
 - Never run `git commit`, `git push`, `git tag`, or any history-changing command unless the
   profile sets `git.allow_writes: true`.
 - Never delete the archived plan, and never renumber it.
-- If the user asks to reopen after closing, that is a new plan that references the archived
-  one in `depends_on` — not an edit to history.
+- If the user asks to reopen after closing, propose `spec-plan` for a new plan that
+  references the archived one in `depends_on`; create it only when the user explicitly asks
+  for `spec-plan`, and never edit history.
 
 ## Outputs
 

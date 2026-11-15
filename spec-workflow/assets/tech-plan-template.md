@@ -21,6 +21,9 @@ Template notes (delete this block when the plan is written):
   Implementation checklist. Keep the exact heading text.
 - Goals use plain `- ` bullets. Checkboxes `- [ ]` belong to Open questions and the
   Implementation checklist only.
+- A plan file is created only on an explicit `spec-plan` request. Work the user adds while
+  the plan is open is appended to this file as new steps and checklist items, not written to
+  a second plan.
 -->
 
 ## Summary

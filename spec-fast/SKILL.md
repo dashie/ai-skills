@@ -10,6 +10,10 @@ Use the fast lane for a small, low-impact change with an unambiguous outcome and
 verifiable scope. Implement first, review the result in a separate pass against the user's
 request, then write a concise retrospective plan. The user decides when to close.
 
+The retrospective plan exists because the user explicitly invoked `spec-fast`; it is the
+only record this lane creates. Never create a second plan: work that outgrows the lane is
+proposed as a `spec-plan` request and waits for the user.
+
 This is the explicit exception to the one-phase-per-invocation rule in
 [../spec-workflow/SKILL.md](../spec-workflow/SKILL.md). It does not invoke or change the
 contracts of the individual phase skills. All other shared gates and Git rules still apply.
@@ -31,7 +35,8 @@ contracts of the individual phase skills. All other shared gates and Git rules s
    belongs to this request without attributing existing changes to it. If changes overlap
    and cannot be separated reliably, ask the user before editing or reviewing them.
 5. If the task is not small and low-impact, needs an architectural decision, migration,
-   security remediation, or significant scope discovery, stop and recommend `spec-plan`.
+   security remediation, or significant scope discovery, stop and recommend `spec-plan`;
+   never create that plan yourself.
    If this becomes apparent later, preserve the work and record its current state before
    stopping; do not silently expand scope.
 
@@ -104,7 +109,8 @@ validated, stop and report the blocker and the work already performed.
 
 When the user requests another iteration, resolve the specific plan with `aispec plan show`
 and read it and its review history. Ask if the reference or scope is ambiguous. A `done`
-plan stays archived: create a new plan referencing it instead of rewriting history.
+plan stays archived: propose a new plan referencing it and create it only when the user
+explicitly asks for `spec-plan`, instead of rewriting history.
 
 For a `reviewed` plan, run `aispec plan set-status <REF> in-progress` **before** any
 substantive edit, so the previous PASS cannot authorize close. An `in-progress` plan stays
@@ -117,7 +123,8 @@ Implement, verify and review the new iteration as above, including the complete 
 change and all original and added goals. Append Implementation Notes and a new Review Notes
 round. A fresh PASS and all checklist and validation gates are required to return to
 `reviewed`; otherwise remain `in-progress`. If the follow-up exceeds fast-lane scope, stop
-and propose a separate `spec-plan` rather than expanding it without agreement.
+and propose a separate `spec-plan`, then wait for the user to ask for it instead of creating
+it yourself.
 
 ## 5. Handoff and close
 

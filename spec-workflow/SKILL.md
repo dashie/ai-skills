@@ -26,6 +26,24 @@ phases.
                                                   └──────► (cyclic until PASS)
 ```
 
+## Plan creation is user-authorized only
+
+No tech plan is created on the agent's own initiative. The single authorization is an
+explicit user request for `spec-plan`; a defect, a missing test, stale documentation, or
+work worth doing is reported, never turned into a plan unprompted. `spec-fast` and
+`spec-implement-and-review` are invoked explicitly too, and they create only the record
+the user asked for.
+
+While a plan is open — `draft`, `in-progress`, or `reviewed` — additional activities the
+user requests during implementation are added to that plan: the steps, the files they
+touch under *Affected modules*, the matching checklist items, and an entry in
+`## Implementation Notes` marked user-approved. A second plan beside an active one is
+wrong by construction.
+
+`spec-plan` is the only phase skill that creates a plan, and it creates one only on that
+explicit request. After a plan is closed, a follow-up becomes a new plan only when the
+user asks for it with `spec-plan` again.
+
 ## Artifacts
 
 | Artifact | Owner | Purpose |
@@ -103,6 +121,9 @@ first keep the separate `spec-implement` → `spec-review` path. It never closes
    numbering, and archive operations. Never substitute an improvised shell command
    or manually reproduce a helper check. If the helper is unavailable or cannot perform
    the required operation, stop and report the blocker.
+8. **Plans are created only on request.** A plan file is written only by `spec-plan`, and
+   only when the user explicitly asks for it. Additional work requested while a plan is
+   open joins that plan; it never justifies a second plan.
 
 ## Helper script
 
@@ -182,7 +203,7 @@ after approval.
 |---|---|
 | Implement and review a small change, then record it retrospectively | `spec-fast` |
 | Close small, mechanical review findings and re-review in one pass | `spec-implement-and-review` |
-| Plan a feature, fix, refactor, or CVE/security remediation | `spec-plan` |
+| Plan a feature, fix, refactor, or CVE/security remediation — only when the user explicitly asks for `spec-plan` | `spec-plan` |
 | Execute an approved plan | `spec-implement` |
 | Review a completed implementation | `spec-review` |
 | Close, version-bump, and archive a reviewed plan | `spec-close` |
@@ -194,3 +215,5 @@ after approval.
 - The user asks the workflow to skip review or to mark work done without evidence → refuse
   and explain the gate.
 - The plan is missing or ambiguous → ask for `NNN`, `NNN-slug`, or a path.
+- The user did not explicitly ask for a plan, or an open plan already carries the work →
+  report the finding or extend the open plan instead; never create a plan unprompted.

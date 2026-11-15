@@ -174,8 +174,9 @@ The checker fails on a missing or empty file, a leftover placeholder, a broken
 relative link, or a missing fixed section (`Git Standards` and `### Design rules` in
 the developer guide, `### Architecture principles` in the architecture document, the
 `## Engineering principles` section in `AGENTS.md`, the English-only rule and
-documentation map and the `## AI skills` section in `AGENTS.md`, the `## AI skills`
-section in `docs/DEVELOPER-GUIDE.md`, the tests sentence in `CONTRIBUTING.md`, the
+documentation map and the `## AI skills` and `## Tech plans: user-requested only`
+sections in `AGENTS.md`, the `## AI skills` section in `docs/DEVELOPER-GUIDE.md`, the
+tests sentence in `CONTRIBUTING.md`, the
 `## How to use it` and `## Configuration` sections plus the maintenance rules in
 `docs/USER-GUIDE.md`). It also fails when the `## What it is` summary in
 `docs/USER-GUIDE.md` is not a single paragraph of at most three lines, or when the guide
@@ -264,11 +265,18 @@ Two cases need a manual decision instead of a script:
   file. The rule governs the output, never the input: accept a request written in any
   language, answer it, and keep every artefact in English.
 - **No invented facts.** Missing information is asked for or declared as an assumption.
+- **No unprompted tech plans.** A generated repository's rule is that a tech plan is
+  created only on an explicit `spec-plan` request, never on the agent's own initiative;
+  while a plan is open, additional work the user asks for is added to that plan rather
+  than to a second one. The `agents-plan-creation` block carries that rule into every
+  generated `AGENTS.md`; never reword or drop it per project.
 - **Diagrams are PlantUML.** Every diagram in a generated document is a `plantuml`
   fenced block with `@startuml` and `@enduml`; C4 views use C4-PlantUML. Never emit
   Mermaid, Graphviz, or ASCII-art diagrams.
 - **Templates are the source of truth.** The `AGENTS.md` engineering principles (KISS,
-  modularity and decoupling, tests with every change), the `AGENTS.md` and `CLAUDE.md`
+  modularity and decoupling, tests with every change), the `AGENTS.md` tech-plan rule
+  (plans only on an explicit `spec-plan` request, extra work joins the active plan), the
+  `AGENTS.md` and `CLAUDE.md`
   pointer text, the architecture principles in `docs/ARCHITECTURE.md`, the design and
   test rules in `docs/DEVELOPER-GUIDE.md`, the two `.github/copilot-*-instructions.md`
   contracts, and the Git process rules are fixed text from the templates; never

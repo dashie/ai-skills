@@ -112,6 +112,12 @@ The spec workflow runs in order: **plan → implement → review → close**. Ea
 phase stops and tells you what to do next; review can send work back to
 implementation, and corrects the documentation the change made stale.
 
+A plan is never created on the agent's own initiative. `spec-plan` runs only when
+you explicitly ask for it, and the other lanes create only the record you requested.
+If you ask for more work while a plan is open, the agent adds it to that plan —
+steps, affected modules, checklist and Implementation Notes — instead of opening a
+second one.
+
 For a small, well-defined, low-impact change, `spec-fast <description>` implements and
 reviews immediately, then records the request, decisions, checks and review in a concise
 retrospective plan. The plan stays open: ask for further iterations as needed, and run
