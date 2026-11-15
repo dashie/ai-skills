@@ -39,7 +39,7 @@ user declines, write the gap down as an assumption instead of inventing a fact.
 | Field | Question | Why |
 |---|---|---|
 | `TECH_STACK` | Languages, frameworks, runtime versions, storage, deployment target? | `docs/ARCHITECTURE.md`, `docs/DEVELOPER-GUIDE.md` |
-| `COMPONENTS` | Main components/services and their responsibilities? | C4 containers/components |
+| `COMPONENTS` | Main components/services and their responsibilities? | C4 containers/components (PlantUML) |
 | `INVARIANTS` | Which properties must never break? | Architecture guardrails |
 
 ## Group 5 — Architecture (nice-to-have)

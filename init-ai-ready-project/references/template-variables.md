@@ -89,14 +89,14 @@ guide current* section is fixed template text.
 | `PROJECT_NAME` | Project name |
 | `ARCHITECTURE_OVERVIEW` | Solution shape and the top quality goals |
 | `CONSTRAINTS` | Technical and organisational constraints |
-| `CONTEXT_DIAGRAM` | Body of a `C4Context` Mermaid diagram, without fences |
+| `CONTEXT_DIAGRAM` | Body of a C4-PlantUML System Context diagram (`!include <C4/C4_Context>`), without fences and without `@startuml`/`@enduml` |
 | `CONTEXT_NOTES` | External systems, trust boundaries, inputs and outputs |
 | `SOLUTION_STRATEGY` | The few decisions that shape the system |
-| `CONTAINER_DIAGRAM` | Body of a `C4Container` Mermaid diagram, without fences |
+| `CONTAINER_DIAGRAM` | Body of a C4-PlantUML Container diagram (`!include <C4/C4_Container>`), without fences and without `@startuml`/`@enduml` |
 | `COMPONENTS` | Table of components and responsibilities |
 | `COMPONENT_CONTRACTS` | Per-component inputs, outputs, guarantees |
 | `DATA_MODEL` | Entities, owners, persistence rules |
-| `RUNTIME_VIEW` | A fenced `mermaid` sequence diagram of the main flow |
+| `RUNTIME_VIEW` | A fenced `plantuml` sequence diagram (`@startuml` … `@enduml`) of the main flow |
 | `DEPLOYMENT_VIEW` | Environments, topology, configuration sources |
 | `CROSS_CUTTING_CONCEPTS` | Errors, logging, security, configuration |
 | `QUALITY_REQUIREMENTS` | Concrete quality scenarios |

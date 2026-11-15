@@ -75,15 +75,15 @@ Follow arc42, sections 1–12, in order. Keep each section short and concrete.
 
 1. Introduction and goals — top quality goals, stakeholders.
 2. Constraints — technical, organisational, conventions.
-3. Context and scope — C4 **System Context** diagram (`C4Context` Mermaid) plus the
-   external systems and actors with their inputs/outputs.
+3. Context and scope — C4 **System Context** diagram (C4-PlantUML `C4_Context`) plus
+   the external systems and actors with their inputs/outputs.
 4. Solution strategy — the handful of decisions that shape the system, followed by the
    fixed `### Architecture principles` subsection (KISS, modular and decoupled
    modules, testability). Never reword or remove it.
-5. Building block view — C4 **Container** and **Component** diagrams (`C4Container`,
-   `C4Component` Mermaid), one table of components with responsibilities.
-6. Runtime view — at least one end-to-end flow (sequence diagram) for the main use
-   case.
+5. Building block view — C4 **Container** and **Component** diagrams (C4-PlantUML
+   `C4_Container`, `C4_Component`), one table of components with responsibilities.
+6. Runtime view — at least one end-to-end flow (PlantUML sequence diagram) for the main
+   use case.
 7. Deployment view — environments, topology, and configuration sources.
 8. Cross-cutting concepts — error handling, logging/observability, security,
    configuration, data ownership.
@@ -98,8 +98,11 @@ Additionally required, as dedicated subsections:
 - **Invariants**: numbered statements (`INV-1`, `INV-2`, …) that must hold in every
   change, each with how it is enforced or tested.
 
-Mermaid diagrams must render without external tooling; validate the syntax mentally
-against C4 diagram keywords. Every diagram gets a caption and a one-sentence takeaway.
+All diagrams are PlantUML: a `plantuml` fenced block containing `@startuml` and
+`@enduml`. No other diagram format (Mermaid, Graphviz, ASCII art) is allowed in any
+document. C4 diagrams use the C4-PlantUML library (`!include <C4/C4_Context>` and
+similar). Validate the syntax with a PlantUML renderer before committing. Every diagram
+gets a caption and a one-sentence takeaway.
 
 ## docs/ADR.md
 

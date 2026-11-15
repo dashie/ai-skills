@@ -264,6 +264,9 @@ Two cases need a manual decision instead of a script:
   file. The rule governs the output, never the input: accept a request written in any
   language, answer it, and keep every artefact in English.
 - **No invented facts.** Missing information is asked for or declared as an assumption.
+- **Diagrams are PlantUML.** Every diagram in a generated document is a `plantuml`
+  fenced block with `@startuml` and `@enduml`; C4 views use C4-PlantUML. Never emit
+  Mermaid, Graphviz, or ASCII-art diagrams.
 - **Templates are the source of truth.** The `AGENTS.md` engineering principles (KISS,
   modularity and decoupling, tests with every change), the `AGENTS.md` and `CLAUDE.md`
   pointer text, the architecture principles in `docs/ARCHITECTURE.md`, the design and

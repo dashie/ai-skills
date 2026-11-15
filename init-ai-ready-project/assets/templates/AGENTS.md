@@ -45,7 +45,7 @@ document you need before changing behaviour.
 | [CONTRIBUTING.md](./CONTRIBUTING.md) | Branching, review, definition of done | The contribution process changes |
 | [docs/PRODUCT.md](./docs/PRODUCT.md) | Users, scope, functional behaviour, business rules | Requirements or scope change |
 | [docs/USER-GUIDE.md](./docs/USER-GUIDE.md) | How users use and configure the product, with every configuration option | User-visible behaviour or a configuration option changes |
-| [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) | arc42 structure, C4 views, components, contracts, invariants | Structure, interfaces, or constraints change |
+| [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) | arc42 structure, C4 views (PlantUML), components, contracts, invariants | Structure, interfaces, or constraints change |
 | [docs/ADR.md](./docs/ADR.md) | Index of architecture decisions and their rationale | A decision is made, accepted, or superseded |
 | [docs/GLOSSARY.md](./docs/GLOSSARY.md) | One precise definition per domain term | A domain term is introduced or redefined |
 | [docs/DEVELOPER-GUIDE.md](./docs/DEVELOPER-GUIDE.md) | Build, run, test, extend, and the Git standards | Tooling, commands, or conventions change |
@@ -53,6 +53,9 @@ document you need before changing behaviour.
 Rules for these documents:
 
 - They are written in English, in Markdown, and use the exact paths above.
+- Every diagram in these documents is PlantUML: a `plantuml` fenced block containing
+  `@startuml` and `@enduml`. No other diagram format (Mermaid, Graphviz, ASCII art) is
+  used, in these documents or in any other document under `docs/`.
 - The six default documents installed by `init-ai-ready-project` under `docs/` use
   fully uppercase filenames, exactly as listed above. Any other documentation file
   under `docs/` uses ordinary filename casing (for example, `project-notes.md`), not

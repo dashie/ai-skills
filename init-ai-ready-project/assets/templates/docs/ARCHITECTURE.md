@@ -1,8 +1,9 @@
 # Architecture — {{PROJECT_NAME}}
 
-This document follows [arc42](https://arc42.org) and uses C4 diagrams. Product intent
-lives in [PRODUCT.md](./PRODUCT.md); decisions and their rationale live in
-[ADR.md](./ADR.md).
+This document follows [arc42](https://arc42.org) and uses C4 diagrams written in
+PlantUML. Every diagram in this document is a `plantuml` fenced block; no other diagram
+format is used. Product intent lives in [PRODUCT.md](./PRODUCT.md); decisions and their
+rationale live in [ADR.md](./ADR.md).
 
 ## 1. Introduction and goals
 
@@ -14,8 +15,10 @@ lives in [PRODUCT.md](./PRODUCT.md); decisions and their rationale live in
 
 ## 3. Context and scope
 
-```mermaid
+```plantuml
+@startuml
 {{CONTEXT_DIAGRAM}}
+@enduml
 ```
 
 {{CONTEXT_NOTES}}
@@ -44,8 +47,10 @@ Fixed principles that constrain every design decision and every change:
 
 ## 5. Building block view
 
-```mermaid
+```plantuml
+@startuml
 {{CONTAINER_DIAGRAM}}
+@enduml
 ```
 
 {{COMPONENTS}}

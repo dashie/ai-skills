@@ -78,6 +78,7 @@ const FIXED_CONTENT = {
     "Tests ship with the change",
     "## AI skills",
     "aispec allow",
+    "PlantUML",
   ],
   "CONTRIBUTING.md": [
     "includes the tests of the code it touches",
