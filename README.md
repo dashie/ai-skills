@@ -44,7 +44,7 @@ git clone <repository-url> ~/.copilot/skills
 Replace `<repository-url>` with the URL of your accessible copy of this
 repository. If `~/.copilot/skills` already exists, do not clone over it: copy
 the skill directories from a separate clone into it, preserving any existing
-skills. Check for name conflicts before copying. Keep all six `spec-*`
+skills. Check for name conflicts before copying. Keep all seven `spec-*`
 directories together because they reference one another, and always copy the
 `lib/` directory alongside the skill directories: every script imports the
 shared library from there.
@@ -105,6 +105,7 @@ your request in chat. You can name a skill explicitly, for example:
 | `spec-plan` | “Use spec-plan to plan this feature.” |
 | `spec-implement` | “Use spec-implement to execute plan 001.” |
 | `spec-review` | “Use spec-review to review plan 001.” |
+| `spec-implement-and-review` | “Use spec-implement-and-review to fix the findings of plan 001.” |
 | `spec-close` | “Use spec-close to close plan 001.” |
 
 The spec workflow runs in order: **plan → implement → review → close**. Each
@@ -116,6 +117,14 @@ reviews immediately, then records the request, decisions, checks and review in a
 retrospective plan. The plan stays open: ask for further iterations as needed, and run
 `spec-close <plan>` only when satisfied. Each substantive iteration requires a fresh review;
 larger, risky or ambiguous work should use the normal `spec-plan` workflow.
+
+When a review returns `NEEDS WORK`, the findings usually need to be fixed before the next
+round. Use `spec-implement <plan>` and then `spec-review <plan>` when a finding is complex and
+you want to inspect the fix before it is reviewed. When every open finding is small and
+mechanical — a typo, a stale comment, a missing import — run
+`spec-implement-and-review <plan>`: it applies the implementation contract to those findings
+and then the review contract, in one invocation, and still stops at a `NEEDS WORK` verdict
+instead of looping.
 
 ## One command for every skill
 

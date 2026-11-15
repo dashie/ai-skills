@@ -123,7 +123,10 @@ Report:
 - steps completed, and anything deferred
 - quality commands run with their results (pass/fail per category)
 - deviations and extensions
-- the single next command — `spec-review <NNN>`
+- the single next command — `spec-review <NNN>`. When the plan already carries a
+  `NEEDS WORK` verdict and every remaining finding is small and mechanical, name
+  `spec-implement-and-review <NNN>` as the shorter alternative: it runs this phase on those
+  findings and then the review, without a hand-off.
 
 Stop there. Do not review your own work, do not mark it `reviewed`, do not archive it.
 

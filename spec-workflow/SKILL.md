@@ -47,14 +47,21 @@ phases.
 | `spec-review/` | Phase 3 — verify, correct stale documentation, verdict, notes |
 | `spec-close/` | Phase 4 — version, changelog, archive |
 | `spec-fast/` | Fast lane — implement, review, and record a small change retrospectively |
+| `spec-implement-and-review/` | Chained lane — close small review findings and re-review in one invocation |
 
-`spec-workflow/` holds the shared assets; the phase skills and fast lane reference them by
-relative path, so install or copy the whole set together.
+`spec-workflow/` holds the shared assets; the phase skills and the extra lanes reference them
+by relative path, so install or copy the whole set together.
 
 The optional `spec-fast <description>` lane implements a small, low-impact change before
 writing its retrospective plan. It performs a review, records the evidence in a compatible
 plan, and leaves it open for further iterations. Closing still requires a fresh PASS and
 the user's explicit `spec-close` request.
+
+The optional `spec-implement-and-review <plan>` lane is the second documented exception:
+after a `NEEDS WORK` verdict, it closes the small, mechanical findings and re-runs the
+review in one invocation, so the user does not have to shuttle between two phases for a
+typo. Findings that change behaviour, need a decision, or that the user wants to inspect
+first keep the separate `spec-implement` → `spec-review` path. It never closes the plan.
 
 ## Status gates
 
@@ -72,15 +79,17 @@ the user's explicit `spec-close` request.
 ## Non-negotiable rules
 
 1. **One phase per invocation.** A phase skill never starts the next phase. It stops and
-   names the exact command for the user to run. The separate `spec-fast` skill is the
-   explicit exception for small changes: it implements, reviews and records in one
-   invocation, but never closes automatically.
+   names the exact command for the user to run. Two skills are the explicit exception for
+   small work: `spec-fast` implements, reviews and records in one invocation, and
+   `spec-implement-and-review` runs the implement and review contracts back to back. Neither
+   ever closes automatically, and neither relaxes the review evidence.
 2. **The plan file is the state.** Once the plan exists, never infer progress from chat
    history; read the plan. Progress lives in the checklist, notes sections, and frontmatter.
    `spec-fast` records its first iteration retrospectively.
-3. **The user owns transitions.** Only an explicit `spec-fast` request authorizes its
-   implement-and-review sequence; never mark `reviewed` without a review or `done` without
-   a PASS verdict and an explicit close request.
+3. **The user owns transitions.** Only an explicit `spec-fast`,
+   `spec-implement-and-review` or `spec-close` request authorizes the corresponding run;
+   never mark `reviewed` without a review or `done` without a PASS verdict and an explicit
+   close request.
 4. **No Git writes.** Skills never run `commit`, `push`, `tag`, `merge`, or `rebase` unless
    the profile explicitly sets `git.allow_writes: true`. They only *suggest* a commit
    message.
@@ -152,6 +161,10 @@ The canonical plan format lives in
 | `reviewed` | `spec-close <NNN>` |
 | `done` | nothing — already archived |
 
+For an `in-progress` plan whose latest verdict is `NEEDS WORK` with only small, mechanical
+findings, `spec-implement-and-review <NNN>` is the shorter equivalent of the two-phase
+sequence; anything else stays with `spec-implement`.
+
 ### Resume a change
 
 Read the plan in full, then report: status, checklist progress, last implementation note,
@@ -168,6 +181,7 @@ after approval.
 | User intent | Skill |
 |---|---|
 | Implement and review a small change, then record it retrospectively | `spec-fast` |
+| Close small, mechanical review findings and re-review in one pass | `spec-implement-and-review` |
 | Plan a feature, fix, refactor, or CVE/security remediation | `spec-plan` |
 | Execute an approved plan | `spec-implement` |
 | Review a completed implementation | `spec-review` |

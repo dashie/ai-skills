@@ -226,7 +226,9 @@ Rules for the block:
 - **PASS** → `aispec plan set-status <REF> reviewed`, then tell
   the user to run `spec-close <NNN>`.
 - **NEEDS WORK** → leave the status as `in-progress` (do **not** change it), and tell the user
-  to run `spec-implement <NNN>` to address the findings, then `spec-review <NNN>` again.
+  to run `spec-implement <NNN>` to address the findings, then `spec-review <NNN>` again. When
+  every open finding is small and mechanical, offer `spec-implement-and-review <NNN>` instead:
+  it closes those findings and re-reviews in one invocation.
 
 ## 9. Report
 
