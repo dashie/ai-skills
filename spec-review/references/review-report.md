@@ -102,6 +102,7 @@ If the profile sets `commit_convention: free`, omit the convention and write a p
 - **Verdict**: PASS
 - **Suggested commit**: `fix(loader): reject empty tile payloads`
 - **Quality gate**: tests ✓ (312 passed) | lint ✓ (0) | types ✓ (0) — `npm run check`
+- **Reviewed state**: `0f3c…(64-hex output of aispec plan fingerprint)`
 
 ### Findings
 | # | Severity | Area | Finding | Status |

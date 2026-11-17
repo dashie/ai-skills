@@ -69,11 +69,12 @@ git:
   commit_convention: conventional  # conventional | free
 ```
 
-`spec-plan.mjs` reads only the top-level keys (`plan_dir`, `draft_dir`, `archive_dir`,
-`number_width`, `filename_prefix`, `statuses`, `required_fields`, `required_sections`).
-Every other block is guidance for the phase skills and must be honoured manually. Keep the
-file flat — the helper uses a deliberately small YAML subset (scalars, inline lists,
-`- item` lists, `#` comments).
+`spec-plan.mjs` reads the plan-layout keys (`plan_dir`, `draft_dir`, `archive_dir`,
+`number_width`, `filename_prefix`, `statuses`, `required_fields`, `required_sections`), the
+`version.file`, `version.field`, and `version.bump` settings, and `docs.changelog` /
+`docs.backlog` for the close operation. Other profile blocks are guidance for the phase
+skills and must be honoured there. Keep the file within the helper's deliberately small YAML
+subset (scalars, inline lists, `- item` lists, `#` comments).
 
 ### Status values
 
@@ -122,16 +123,21 @@ the paths that exist; a missing path is not an error. Typical obligations:
   its default and accepted values. Self-contained and distributed on its own, so it never
   links to the repository's internal documents.
 - `developer_guide` — build, run, test, or contribution steps.
-- `changelog` — every user-visible change at close time.
-- `backlog` — link the plan next to its backlog item at plan time; mark it delivered at
-  close time.
+- `changelog` — every user-visible change; `spec-plan close` adds the entry in the existing
+  configured file.
+- `backlog` — link the plan filename next to its backlog item at plan time;
+  `spec-plan close` marks the unique matching item delivered.
 
 ## Version handling
 
 `version.bump: plan` means the plan's own `version_bump` frontmatter decides
-(`patch`/`minor`/`major`, or `none` to skip). If the manifest cannot be determined, or the
-plan says nothing while the repository is versioned, ask the user. Repositories with no
-version file skip the bump and say so in the close report.
+(`patch`/`minor`/`major`, or `none` to skip). `spec-plan close` applies the configured bump
+only when `version.file` exists and `version.field` identifies exactly one version value.
+Supported version files are JSON (including dotted field paths), section/key formats such as
+TOML, YAML root keys, and plain `.txt`/`.version` files. The helper requires a plain
+`MAJOR.MINOR.PATCH` version; pre-release versions and ambiguous or unsupported fields fail
+without closing the plan. Keep one canonical version field configured. With no version file,
+set `version_bump: none` in the plan.
 
 ## Profile snippet to propose
 

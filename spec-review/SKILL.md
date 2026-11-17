@@ -22,10 +22,10 @@ Each round appends its own `## Review Notes`. Only the **latest** verdict counts
 ## 0. Pre-flight — gate
 
 ```
-aispec plan validate-for review <REF>
+aispec plan validate-for review <REF> --strict
 ```
 
-Requires status `in-progress`. On failure: stop, report, and name the allowed command.
+Requires status `in-progress`, a valid plan and a fully ticked checklist. On failure: stop, report, and name the allowed command.
 
 `<skill-root>` is the `spec-workflow` skill directory
 (`~/.copilot/skills/spec-workflow` for a user-scope install); the profile and quality
@@ -180,7 +180,7 @@ go back to `spec-implement` so the implementation phase stays accountable for th
 
 ## 7. Write the Review Notes
 
-Ask permission, then append a new block at the end of the plan:
+Writing the Review Notes is the review's mandatory output and needs no permission. Append a new block at the end of the plan, after every documentation or minor fix:
 
 ```markdown
 ## Review Notes
@@ -190,6 +190,7 @@ Ask permission, then append a new block at the end of the plan:
 - **Verdict**: PASS | NEEDS WORK
 - **Suggested commit**: `<type>(<scope>): <imperative lowercase description>`
 - **Quality gate**: tests ✓ | lint ✓ | types ✓ (`<commands>`)
+- **Reviewed state**: `<output of aispec plan fingerprint>`
 
 ### Findings
 | # | Severity | Area | Finding | Status |
@@ -213,6 +214,9 @@ Ask permission, then append a new block at the end of the plan:
 Rules for the block:
 
 - `**Verdict**` must be exactly `PASS` or `NEEDS WORK` — the close gate parses it.
+- `**Reviewed state**` is the output of `aispec plan fingerprint`, run after the last edit of
+  the round (omit the line only when it reports there is no git repository). `spec-close`
+  refuses to close when the code changed after it.
 - Append a new round block; never rewrite or delete earlier rounds.
 - Documentation corrected by the reviewer is listed as a finding with status `fixed in
   review`, together with the evidence that the documentation check now passes.
@@ -235,9 +239,10 @@ Rules for the block:
 
 ## 9. Report
 
-Chat report, in this order: gate result, quality table, verification matrix with evidence,
-gap analysis, findings by severity, verdict, next command. Keep it factual; no praise, no
-summary of what the code does.
+Chat report, in this order: gate result, quality table, findings by severity (with the
+evidence for each), verdict, next command. The verification matrix and gap analysis are
+worked through during the review and recorded once, in the Review Notes — in chat mention
+only the rows that failed. Keep it factual; no praise, no summary of what the code does.
 
 ## Guardrails
 

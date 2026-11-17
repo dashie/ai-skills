@@ -1,13 +1,14 @@
 ---
 name: spec-close
-description: 'Close a reviewed tech plan: re-verify the PASS gate, bump the version according to the plan, update changelog and backlog, mark the plan done, archive it, and produce a close report with the commit message. Use when the user asks to close, finish, archive, release, or finalize a plan, says "spec-close", "chiudi il piano", "archivia il piano", "chiudiamo questa feature". It never implements, reviews, or plans: it only closes work that already carries a PASS verdict.'
+description: 'Close a reviewed tech plan: run the deterministic close command to verify the PASS gate and checklist, apply the configured version bump, mark the plan done, and archive it. Use when the user asks to close, finish, archive, release, or finalize a plan, says "spec-close", "chiudi il piano", "archivia il piano", "chiudiamo questa feature". It never implements, reviews, or plans.'
 argument-hint: '<plan number, number-slug, or path>'
 ---
 
 # Spec-Close — Close a Reviewed Plan
 
-Closing is bookkeeping plus one last proof. You convert a reviewed plan into a permanent
-record: version bumped, history updated, plan archived, and a report the user can act on.
+Closing is bookkeeping, not a second review. The review already owns the code and quality
+checks; this phase verifies the recorded PASS and checklist, applies the configured version
+bump, and archives the plan.
 
 ## Position in the workflow
 
@@ -15,68 +16,34 @@ record: version bumped, history updated, plan archived, and a report the user ca
 spec-review ──reviewed + PASS──► spec-close ──done──► archive/
 ```
 
-## 0. Pre-flight — the gate
+## Close
+
+Run the deterministic helper command from the repository root:
 
 ```
-aispec plan validate-for close <REF>
+aispec plan close <REF> [--date YYYY-MM-DD]
 ```
 
-This requires status `reviewed`, a valid plan structure, and a **latest** `**Verdict**: PASS`
-in `## Review Notes`. On failure: stop and report. Never force, never hand-edit the verdict,
-never close a plan whose review is `NEEDS WORK`.
+`close` checks the plan is `reviewed`, validates its latest review verdict is PASS, and
+requires every implementation checklist item to be ticked. It applies the `version.bump`
+policy from `.spec-workflow.yml` (`plan` uses the plan's `version_bump`), then sets status to
+`done` and moves the file to the configured archive directory. If `docs.changelog` and
+`docs.backlog` are configured and exist, it adds a changelog entry and marks the unique
+backlog line containing the plan filename as delivered. If the backlog reference is absent
+or ambiguous, it stops before writing. It does not rerun tests or repeat the code review.
+Use `--date` to set the release date; otherwise the helper uses the current UTC date.
 
-`<skill-root>` is the `spec-workflow` skill directory
-(`~/.copilot/skills/spec-workflow` for a user-scope install).
+The version file and field must be configured in `.spec-workflow.yml`. The helper supports
+JSON fields (including dotted paths), section/key text formats such as TOML, YAML root keys,
+and plain `.txt`/`.version` files. Versions must be `MAJOR.MINOR.PATCH`; unsupported formats or
+pre-release versions fail safely. See [close-procedures.md](./references/close-procedures.md)
+for exact field formats and record-update behavior.
 
-## 1. Re-verify the gate yourself
+Do not edit the plan's goals, steps, notes, or verdict while closing. Decision records and
+architecture documents are not modified by `close`; they remain ordinary documentation work
+and should already be addressed by review where applicable.
 
-The verdict may be stale — code may have changed after the review.
-
-1. Check the working tree is not dirtier than the reviewed state: `git status --porcelain`,
-   `git diff --stat` since the review date. Commitments made after the review invalidate it;
-   if the code changed materially, stop and ask for a new `spec-review`.
-2. Run the full quality suite once more. A PASS followed by a red suite is not closeable.
-3. `spec-plan.mjs checklist <REF>` must report every item ticked (exit 0).
-4. Skim the plan's goals one last time: nothing obviously unmet in the diff.
-
-## 2. Version bump
-
-Read `version_bump` from the plan and `version.bump` from the profile
-([../spec-workflow/references/project-profile.md](../spec-workflow/references/project-profile.md)).
-
-| Plan value | Action |
-|---|---|
-| `patch` / `minor` / `major` | bump the manifest version by exactly that increment |
-| `none` | skip, and say why in the report |
-| missing, with a versioned project | ask the user which increment |
-
-Verify the version is stored in one place; if the build embeds it (packaging metadata,
-`__version__`, build config, desktop app manifests), update every copy the project keeps in
-sync. Formats and sed-safe recipes: [references/close-procedures.md](./references/close-procedures.md).
-
-Do not bump when the repository is unversioned — report `n/a`.
-
-## 3. Update the living records
-
-- **Changelog** (`CHANGELOG.md` or profile path) — add the entry under the new version, in the
-  project's existing style. Link the plan and, for `security` plans, the advisory id. Skip
-  when the project keeps no changelog.
-- **Backlog / roadmap** — mark the linked item delivered, or link the archived plan to it.
-- **Decision records / architecture** — only if the plan said a record was created; confirm it
-  exists rather than duplicating it.
-- Do not rewrite history, do not squash notes, do not delete the plan's sections.
-
-## 4. Mark done and archive
-
-```
-aispec plan set-status <REF> done
-aispec plan archive <REF>
-```
-
-Archive is only legal from `done`; if the script refuses, fix the status first, never the
-script. Report the final path (usually `<plan_dir>/archive/NNN-slug.md`).
-
-## 5. Close report
+## Close report
 
 Deliver, in chat:
 
@@ -84,11 +51,8 @@ Deliver, in chat:
 ## Closed — <plan title> (#NNN)
 
 - **Status**: done, archived at `<path>`
-- **Version**: <old> → <new> (or `n/a`)
-- **Quality gate**: <commands> — ✓
-- **Changelog**: <entry reference or n/a>
-- **Security**: <advisory id and outcome, if a security plan>
-- **Files**: <n> changed (<n> added, <n> modified, <n> deleted)
+- **Version**: <old> → <new>, or unchanged
+- **Changelog / backlog**: updated or n/a
 
 ### Commit message
 `<type>(<scope>): <description>`
@@ -99,26 +63,13 @@ Deliver, in chat:
 - [ ] Tag `<version>` if the project releases from tags
 ```
 
-The final section matters: the skills never commit, push, or tag. The user does.
-
-## 6. Security plans
-
-Beyond the generic steps:
-
-1. Confirm the scanner is clean and that the evidence is recorded in the plan.
-2. Confirm the changelog entry cites the advisory id.
-3. If the outcome was an accepted risk, confirm owner and review date are in the plan, and
-   restate them in the close report.
-4. Never close with "upgrade pending" wording: either remediated, or accepted with an owner.
+The helper never commits, pushes, or tags. The user does.
 
 ## Guardrails
 
-- Use `spec-plan.mjs` for every supported plan operation, including gate validation,
-  checklist/progress checks, and status/archive changes. Do not invent ad-hoc shell
-  commands or manually reproduce a helper check; if the helper is unavailable or lacks the
-  required operation, stop and report the blocker.
-- Never close without a PASS, never close with unticked checklist items, never close with a
-  red quality suite.
+- Use only `spec-plan.mjs close` for the close operation. If the helper is unavailable,
+  stop and report the blocker.
+- Never close without a PASS or with unticked checklist items.
 - Never alter the plan's goals, steps, notes, or verdicts while closing; the file is a record.
 - Never run `git commit`, `git push`, `git tag`, or any history-changing command unless the
   profile sets `git.allow_writes: true`.
@@ -129,6 +80,5 @@ Beyond the generic steps:
 
 ## Outputs
 
-- Version bumped (when applicable), changelog and backlog updated.
-- Plan marked `done` and moved to the archive directory.
+- Version bumped (when applicable); plan marked `done` and moved to the archive directory.
 - A close report with the suggested commit message and the manual steps left to the user.

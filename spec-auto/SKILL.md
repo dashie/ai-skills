@@ -95,12 +95,10 @@ modules* respected.
 ## 3. Hand-off gate before the review
 
 ```
-aispec plan checklist <REF>
-aispec plan validate <REF> --strict
-aispec plan validate-for review <REF>
+aispec plan validate-for review <REF> --strict
 ```
 
-All three must pass before any review work starts: a run that leaves unticked items or an
+The gate (status, valid plan, fully ticked checklist) must pass before any review work starts: a run that leaves unticked items or an
 invalid plan is a failed run, not a review input. If one fails, stop and report — do not
 review a plan the gate rejects, and do not tick the closing items to make the gate happy.
 

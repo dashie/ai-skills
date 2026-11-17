@@ -92,7 +92,7 @@ Run `aispec plan validate <REF>` and fix errors. Then:
 ```
 aispec plan validate-for implement <REF>
 aispec plan set-status <REF> in-progress
-aispec plan validate-for review <REF>
+aispec plan validate-for review <REF> --strict
 ```
 
 These gates do not imply that a retrospective plan was approved before implementation.
@@ -100,8 +100,9 @@ For each completed review round, append `## Review Notes` in the format specifie
 `spec-review`, including the exact `**Verdict**: PASS` or `**Verdict**: NEEDS WORK`,
 findings, gap analysis and executed quality evidence. Never overwrite prior review rounds.
 
-For `PASS`, run `aispec plan checklist <REF>` and `aispec plan validate <REF> --strict`.
-Only when both succeed and the full review and quality suite passed, run
+For `PASS`, record `**Reviewed state**` (`aispec plan fingerprint`) in the notes. Only when
+the full review and quality suite passed and `validate-for review <REF> --strict` still
+succeeds, run
 `aispec plan set-status <REF> reviewed`. Otherwise leave `in-progress`, report why and do
 not fabricate a PASS. If the record or a required helper operation cannot be created or
 validated, stop and report the blocker and the work already performed.
@@ -132,9 +133,8 @@ it yourself.
 Report the plan path and status, changed files, verification results, review verdict,
 limitations and any blockers. The user may request another iteration. Only when satisfied
 may they explicitly run `spec-close <REF>`; this skill never closes, archives, bumps a
-version, commits or pushes automatically. `spec-close` rechecks the latest PASS and quality
-gate. If code changes materially outside this skill after a review, obtain a fresh review
-before close.
+version, commits or pushes automatically. `spec-close` checks the latest PASS and that the code is unchanged since the review
+(`**Reviewed state**`); if it changed, obtain a fresh review before close.
 
 Use `aispec plan` for all plan operations it supports; never hand-edit status or bypass a
 failed gate. Do not silently include unrelated work or report success for unverified work.

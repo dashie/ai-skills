@@ -219,7 +219,7 @@ try {
       "type: chore",
       "impact: low",
       "area: tests",
-      "version_bump: none",
+      "version_bump: patch",
       "---",
       "",
       "## Summary",
@@ -261,6 +261,18 @@ try {
 
   // A retrospective record follows the existing review and close gates across iterations.
   const planFile = path.join(planRepo, "tech-plans", "001-smoke.md");
+  fs.writeFileSync(path.join(planRepo, "package.json"), '{"name":"smoke","version":"1.2.3"}\n', "utf8");
+  fs.writeFileSync(
+    path.join(planRepo, "CHANGELOG.md"),
+    "# Changelog\n\n## [Unreleased]\n\n## [1.2.3] - 2026-01-01\n\n### Added\n\n- Previous change.\n",
+    "utf8",
+  );
+  fs.writeFileSync(path.join(planRepo, "BACKLOG.md"), "- [ ] Smoke task (plan: 001-smoke)\n", "utf8");
+  fs.writeFileSync(
+    path.join(planRepo, ".spec-workflow.yml"),
+    "plan_dir: tech-plans\nversion:\n  file: package.json\n  field: version\n  bump: plan\ndocs:\n  changelog: CHANGELOG.md\n  backlog: BACKLOG.md\n",
+    "utf8",
+  );
   run("spec-fast: start retrospective record", S.specPlan, ["set-status", "001", "in-progress"], { cwd: planRepo });
   run("spec-fast: gate review", S.specPlan, ["validate-for", "review", "001"], { cwd: planRepo });
   run("spec-fast: no close before review", S.specPlan, ["validate-for", "close", "001"], { cwd: planRepo, expect: 1 });
@@ -272,12 +284,58 @@ try {
   fs.appendFileSync(planFile, "\n## Review Notes\n\n- **Verdict**: NEEDS WORK\n", "utf8");
   run("spec-fast: simulate stale reviewed status", S.specPlan, ["set-status", "001", "reviewed"], { cwd: planRepo });
   run("spec-fast: latest NEEDS WORK blocks close", S.specPlan, ["validate-for", "close", "001"], { cwd: planRepo, expect: 1 });
+  run("spec-fast: close command rejects NEEDS WORK", S.specPlan, ["close", "001"], { cwd: planRepo, expect: 1 });
+  report(
+    "spec-plan close leaves version unchanged on gate failure",
+    JSON.parse(fs.readFileSync(path.join(planRepo, "package.json"), "utf8")).version === "1.2.3",
+    "version changed even though the latest verdict was NEEDS WORK",
+  );
   run("spec-fast: resume iteration", S.specPlan, ["set-status", "001", "in-progress"], { cwd: planRepo });
   fs.appendFileSync(planFile, "\n## Review Notes\n\n- **Verdict**: PASS\n", "utf8");
   run("spec-fast: complete checklist", S.specPlan, ["checklist", "001"], { cwd: planRepo });
   run("spec-fast: validate completed record", S.specPlan, ["validate", "001", "--strict"], { cwd: planRepo });
   run("spec-fast: mark fresh review", S.specPlan, ["set-status", "001", "reviewed"], { cwd: planRepo });
   run("spec-fast: close gate after fresh PASS", S.specPlan, ["validate-for", "close", "001"], { cwd: planRepo });
+  const git = (args) => spawnSync("git", args, { cwd: planRepo, encoding: "utf8" });
+  fs.rmSync(path.join(planRepo, ".git"), { recursive: true, force: true });
+  git(["init", "-q"]);
+  const fingerprint = run("spec-plan: fingerprint", S.specPlan, ["fingerprint"], { cwd: planRepo }).trim();
+  report("spec-plan: fingerprint is a sha256", /^[0-9a-f]{64}$/.test(fingerprint), fingerprint);
+  fs.appendFileSync(planFile, `- **Reviewed state**: \`${fingerprint}\`\n`, "utf8");
+  run("spec-plan: close gate accepts unchanged state", S.specPlan, ["validate-for", "close", "001"], { cwd: planRepo });
+  fs.writeFileSync(path.join(planRepo, "late-change.txt"), "after review\n", "utf8");
+  run("spec-plan: close gate rejects code changed after review", S.specPlan, ["validate-for", "close", "001"], {
+    cwd: planRepo,
+    expect: 1,
+  });
+  fs.rmSync(path.join(planRepo, "late-change.txt"));
+  fs.appendFileSync(path.join(planRepo, "BACKLOG.md"), "- duplicate task (plan: 001-smoke)\n", "utf8");
+  run("spec-plan: ambiguous backlog blocks close", S.specPlan, ["close", "001", "--date", "2026-11-17"], {
+    cwd: planRepo,
+    expect: 1,
+  });
+  report(
+    "spec-plan close leaves all files unchanged on ambiguous backlog",
+    JSON.parse(fs.readFileSync(path.join(planRepo, "package.json"), "utf8")).version === "1.2.3" &&
+      fs.readFileSync(path.join(planRepo, "tech-plans/001-smoke.md"), "utf8").includes("status: reviewed") &&
+      !fs.readFileSync(path.join(planRepo, "CHANGELOG.md"), "utf8").includes("## [1.2.4]"),
+    "ambiguous backlog match caused partial close writes",
+  );
+  fs.writeFileSync(path.join(planRepo, "BACKLOG.md"), "- [ ] Smoke task (plan: 001-smoke)\n", "utf8");
+  run("spec-plan: close updates records and archives", S.specPlan, ["close", "001", "--date", "2026-11-17"], { cwd: planRepo });
+  const archivedPlan = path.join(planRepo, "tech-plans/archive/001-smoke.md");
+  const changelog = fs.readFileSync(path.join(planRepo, "CHANGELOG.md"), "utf8");
+  const backlog = fs.readFileSync(path.join(planRepo, "BACKLOG.md"), "utf8");
+  report(
+    "spec-plan close updates version, changelog, backlog, and archive",
+    JSON.parse(fs.readFileSync(path.join(planRepo, "package.json"), "utf8")).version === "1.2.4" &&
+      fs.readFileSync(archivedPlan, "utf8").includes("status: done") &&
+      changelog.includes("## [1.2.4] - 2026-11-17") &&
+      changelog.includes("archive/001-smoke.md") &&
+      backlog.includes("[x] Smoke task") &&
+      backlog.includes("Delivered in 1.2.4"),
+    `version: ${fs.readFileSync(path.join(planRepo, "package.json"), "utf8")}\nchangelog:\n${changelog}\nbacklog:\n${backlog}`,
+  );
 } finally {
   fs.rmSync(work, { recursive: true, force: true });
 }

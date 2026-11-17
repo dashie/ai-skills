@@ -14,7 +14,7 @@ phases.
    spec-plan            spec-implement            spec-review           spec-close
  ┌───────────┐        ┌───────────────┐        ┌────────────┐        ┌──────────┐
  │ interview │        │ execute steps │        │ verify vs  │        │ version  │
- │ dedupe    │        │ test each step│        │ plan + run │        │ changelog│
+ │ dedupe    │        │ test each step│        │ plan + run │        │ archive │
  │ write     │        │ track progress│        │ checks     │        │ archive  │
  │ validate  │        │ notes         │        │ verdict    │        │ report   │
  └─────┬─────┘        └───────┬───────┘        └─────┬──────┘        └────┬─────┘
@@ -54,7 +54,7 @@ user asks for it with `spec-plan` again.
 |---|---|---|
 | Tech plan (`<plan_dir>/NNN-slug.md`) | `spec-plan` | Single source of truth: intent, scope, steps, checklist, notes, verdict |
 | Plan directories (`draft/`, `archive/`) | helper script | Status-driven placement, when the repository splits them |
-| Quality suite output | `spec-implement`, `spec-review`, `spec-close` | Evidence that a phase really passed |
+| Quality suite output | `spec-implement`, `spec-review` | Evidence that a phase really passed |
 | `## Implementation Notes` | `spec-implement` | Deviations, discoveries, extra scope |
 | `## Review Notes` | `spec-review` | Verdict, gaps, suggested commit message |
 | Close report (chat only) | `spec-close` | Version bump, archive location, commit message |
@@ -67,7 +67,7 @@ user asks for it with `spec-plan` again.
 | `spec-plan/` | Phase 1 — create the plan |
 | `spec-implement/` | Phase 2 — execute the plan |
 | `spec-review/` | Phase 3 — verify, correct stale documentation, verdict, notes |
-| `spec-close/` | Phase 4 — version, changelog, archive |
+| `spec-close/` | Phase 4 — version bump and archive |
 | `spec-fast/` | Fast lane — implement, review, and record a small change retrospectively |
 | `spec-auto/` | Chained lane — execute a whole plan and review it in one invocation |
 | `spec-implement-and-review/` | Chained lane — close small review findings and re-review in one invocation |
@@ -158,9 +158,11 @@ every skill directory must stay next to `lib/`; do not copy a skill directory on
 | `show REF` | Frontmatter summary, checklist progress, latest verdict, note counts |
 | `checklist REF` | Every unticked item with `file:line`; exit 2 if incomplete |
 | `validate REF [--strict]` | Frontmatter + required sections; `--strict` also requires a full checklist |
-| `validate-for implement\|review\|close REF` | Status gate (+ dependency and verdict checks) |
+| `validate-for PHASE REF [--strict]` | Phase gate; `--strict` also requires a full checklist (use it as the single hand-off gate before review) |
+| `fingerprint` | Hash of the code state outside the plan dirs; recorded as `**Reviewed state**` and checked by `close` |
 | `set-status REF STATUS` | Update status and move the file between plan directories |
 | `archive REF` | Move a `done` plan to the archive directory |
+| `close REF` | Verify PASS + checklist, bump version, update configured records, mark done, archive |
 
 Resolve `<skill-root>` from this skill's location (for a user-scope install it is
 `~/.copilot/skills/spec-workflow`). If the script is unavailable or cannot perform a

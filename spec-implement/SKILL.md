@@ -122,7 +122,7 @@ stop and report; the user decides whether the plan is revised. Creating a plan i
 
 ## 6. Final gate
 
-1. `spec-plan.mjs checklist <REF>` reports every item ticked (exit 0).
+1. `aispec plan validate-for review <REF> --strict` passes (every item ticked, plan valid).
 2. The full quality suite from the profile passes — run it, paste the command and the
    outcome, do not infer.
 3. Documentation listed under Affected modules is actually updated — including

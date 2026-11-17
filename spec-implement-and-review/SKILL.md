@@ -94,7 +94,7 @@ finding was misclassified. Report it and hand the round back to the separate pha
 ## 3. Hand-off gate between the two phases
 
 ```
-aispec plan validate-for review <REF>
+aispec plan validate-for review <REF> --strict
 ```
 
 Must pass before any review work starts; the fix pass leaves the plan `in-progress`. If it
