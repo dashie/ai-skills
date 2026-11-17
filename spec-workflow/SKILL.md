@@ -26,13 +26,17 @@ phases.
                                                   └──────► (cyclic until PASS)
 ```
 
+`spec-auto` collapses the first two STOPs into one invocation — implement every step, then
+review — and reports a single verdict. The plan status still moves `draft` → `in-progress` →
+`reviewed` through the same gates; only the human gap between them disappears.
+
 ## Plan creation is user-authorized only
 
 No tech plan is created on the agent's own initiative. The single authorization is an
 explicit user request for `spec-plan`; a defect, a missing test, stale documentation, or
-work worth doing is reported, never turned into a plan unprompted. `spec-fast` and
-`spec-implement-and-review` are invoked explicitly too, and they create only the record
-the user asked for.
+work worth doing is reported, never turned into a plan unprompted. `spec-fast`,
+`spec-auto` and `spec-implement-and-review` are invoked explicitly too, and they create only
+the record the user asked for.
 
 While a plan is open — `draft`, `in-progress`, or `reviewed` — additional activities the
 user requests during implementation are added to that plan: the steps, the files they
@@ -65,6 +69,7 @@ user asks for it with `spec-plan` again.
 | `spec-review/` | Phase 3 — verify, correct stale documentation, verdict, notes |
 | `spec-close/` | Phase 4 — version, changelog, archive |
 | `spec-fast/` | Fast lane — implement, review, and record a small change retrospectively |
+| `spec-auto/` | Chained lane — execute a whole plan and review it in one invocation |
 | `spec-implement-and-review/` | Chained lane — close small review findings and re-review in one invocation |
 
 `spec-workflow/` holds the shared assets; the phase skills and the extra lanes reference them
@@ -75,18 +80,26 @@ writing its retrospective plan. It performs a review, records the evidence in a 
 plan, and leaves it open for further iterations. Closing still requires a fresh PASS and
 the user's explicit `spec-close` request.
 
-The optional `spec-implement-and-review <plan>` lane is the second documented exception:
-after a `NEEDS WORK` verdict, it closes the small, mechanical findings and re-runs the
-review in one invocation, so the user does not have to shuttle between two phases for a
-typo. Findings that change behaviour, need a decision, or that the user wants to inspect
-first keep the separate `spec-implement` → `spec-review` path. It never closes the plan.
+The optional `spec-auto <plan>` lane runs a whole plan unattended: `spec-implement` on every
+step, then `spec-review`, then the verdict, in one invocation. It exists for machines where
+nobody inspects the code between the two phases. It crosses `🔶 CHECKPOINT` blocks instead of
+waiting on them, turning any point where `spec-implement` would ask the user into a stop and a
+report; it may run one automatic fix round when every `NEEDS WORK` finding is mechanical; and
+it never closes the plan. Its review is a self-review in the same session, disclosed as such
+in the `## Review Notes` round.
+
+The optional `spec-implement-and-review <plan>` lane is the fix lane: after a `NEEDS WORK`
+verdict, it closes the small, mechanical findings and re-runs the review in one invocation, so
+the user does not have to shuttle between two phases for a typo. Findings that change
+behaviour, need a decision, or that the user wants to inspect first keep the separate
+`spec-implement` → `spec-review` path. It never closes the plan.
 
 ## Status gates
 
 | Status | Meaning | Allowed next phase | Gate check |
 |---|---|---|---|
-| `draft` | Plan written and approved, no code yet | `spec-implement` | `validate-for implement` |
-| `in-progress` | Implementation started, may be incomplete | `spec-implement` (resume) or `spec-review` | `validate-for review` |
+| `draft` | Plan written and approved, no code yet | `spec-implement` or `spec-auto` | `validate-for implement` |
+| `in-progress` | Implementation started, may be incomplete | `spec-implement` (resume), `spec-auto` (resume + review) or `spec-review` | `validate-for review` |
 | `reviewed` | Latest review verdict is PASS | `spec-close` | `validate-for close` |
 | `done` | Closed and archived | none | — |
 
@@ -97,14 +110,15 @@ first keep the separate `spec-implement` → `spec-review` path. It never closes
 ## Non-negotiable rules
 
 1. **One phase per invocation.** A phase skill never starts the next phase. It stops and
-   names the exact command for the user to run. Two skills are the explicit exception for
-   small work: `spec-fast` implements, reviews and records in one invocation, and
-   `spec-implement-and-review` runs the implement and review contracts back to back. Neither
-   ever closes automatically, and neither relaxes the review evidence.
+   names the exact command for the user to run. Three skills are the explicit exceptions:
+   `spec-fast` implements, reviews and records in one invocation; `spec-auto` executes a whole
+   plan and reviews it; `spec-implement-and-review` runs the implement and review contracts
+   back to back on a fix round. None ever closes automatically, and none relaxes the review
+   evidence.
 2. **The plan file is the state.** Once the plan exists, never infer progress from chat
    history; read the plan. Progress lives in the checklist, notes sections, and frontmatter.
    `spec-fast` records its first iteration retrospectively.
-3. **The user owns transitions.** Only an explicit `spec-fast`,
+3. **The user owns transitions.** Only an explicit `spec-fast`, `spec-auto`,
    `spec-implement-and-review` or `spec-close` request authorizes the corresponding run;
    never mark `reviewed` without a review or `done` without a PASS verdict and an explicit
    close request.
@@ -177,14 +191,17 @@ The canonical plan format lives in
 
 | Status | Next command |
 |---|---|
-| `draft` | `spec-implement <NNN>` |
-| `in-progress`, no review yet or latest verdict `NEEDS WORK` | `spec-implement <NNN>` |
+| `draft` | `spec-implement <NNN>`, or `spec-auto <NNN>` to execute and review unattended |
+| `in-progress`, no review yet | `spec-implement <NNN>` (resume), or `spec-auto <NNN>` to finish and review |
+| `in-progress`, latest verdict `NEEDS WORK` | `spec-implement <NNN>` |
 | `reviewed` | `spec-close <NNN>` |
 | `done` | nothing — already archived |
 
 For an `in-progress` plan whose latest verdict is `NEEDS WORK` with only small, mechanical
 findings, `spec-implement-and-review <NNN>` is the shorter equivalent of the two-phase
-sequence; anything else stays with `spec-implement`.
+sequence; anything else stays with `spec-implement`. On an unattended machine, `spec-auto
+<NNN>` is the equivalent of `spec-implement` + `spec-review` for a plan that has not been
+reviewed yet.
 
 ### Resume a change
 
@@ -202,6 +219,7 @@ after approval.
 | User intent | Skill |
 |---|---|
 | Implement and review a small change, then record it retrospectively | `spec-fast` |
+| Execute a whole plan and review it in one unattended invocation | `spec-auto` |
 | Close small, mechanical review findings and re-review in one pass | `spec-implement-and-review` |
 | Plan a feature, fix, refactor, or CVE/security remediation — only when the user explicitly asks for `spec-plan` | `spec-plan` |
 | Execute an approved plan | `spec-implement` |

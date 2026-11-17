@@ -86,6 +86,7 @@ from here, and never copy them into the tree.
 | `init-ai-ready-project` | `aispec scaffold`, `aispec update`, `aispec check` |
 | `init-devcontainer-ai-sandbox` | `aispec sandbox-scaffold`, `aispec sandbox-verify`, `aispec sandbox-uninstall` |
 | `spec-implement`, `spec-review`, `spec-close` | Their `SKILL.md`: they drive the workflow, `aispec plan` is their only executable |
+| `spec-auto` | Its `SKILL.md`: executes a whole plan and reviews it in one unattended invocation |
 | `spec-implement-and-review` | Its `SKILL.md`: chains implement and review for small findings |
 
 `aispec` must be on `PATH`: install it once with `npm link` in `~/.copilot/skills`, or

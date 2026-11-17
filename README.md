@@ -44,7 +44,7 @@ git clone <repository-url> ~/.copilot/skills
 Replace `<repository-url>` with the URL of your accessible copy of this
 repository. If `~/.copilot/skills` already exists, do not clone over it: copy
 the skill directories from a separate clone into it, preserving any existing
-skills. Check for name conflicts before copying. Keep all seven `spec-*`
+skills. Check for name conflicts before copying. Keep all eight `spec-*`
 directories together because they reference one another, and always copy the
 `lib/` directory alongside the skill directories: every script imports the
 shared library from there.
@@ -104,13 +104,16 @@ your request in chat. You can name a skill explicitly, for example:
 | `spec-fast` | “spec-fast fix the typo in the help output.” |
 | `spec-plan` | “Use spec-plan to plan this feature.” |
 | `spec-implement` | “Use spec-implement to execute plan 001.” |
+| `spec-auto` | “Use spec-auto to run plan 001 through the review.” |
 | `spec-review` | “Use spec-review to review plan 001.” |
 | `spec-implement-and-review` | “Use spec-implement-and-review to fix the findings of plan 001.” |
 | `spec-close` | “Use spec-close to close plan 001.” |
 
 The spec workflow runs in order: **plan → implement → review → close**. Each
 phase stops and tells you what to do next; review can send work back to
-implementation, and corrects the documentation the change made stale.
+implementation, and corrects the documentation the change made stale. On an
+unattended machine, `spec-auto <plan>` runs implementation and review in a single
+invocation and reports one verdict.
 
 A plan is never created on the agent's own initiative. `spec-plan` runs only when
 you explicitly ask for it, and the other lanes create only the record you requested.
@@ -123,6 +126,14 @@ reviews immediately, then records the request, decisions, checks and review in a
 retrospective plan. The plan stays open: ask for further iterations as needed, and run
 `spec-close <plan>` only when satisfied. Each substantive iteration requires a fresh review;
 larger, risky or ambiguous work should use the normal `spec-plan` workflow.
+
+For a plan that must run end to end without a hand-off — a remote or unattended machine,
+where nothing is inspected between implementation and review — use `spec-auto <plan>`. It
+executes every step, crosses `🔶 CHECKPOINT` blocks instead of waiting on them, turns any
+point where the implementer would ask a question into a stop and a report, runs the review
+contract, and stops at the verdict. Its review happens in the same session as the
+implementation and says so in the plan; it applies at most one automatic fix round, and only
+when every finding is mechanical.
 
 When a review returns `NEEDS WORK`, the findings usually need to be fixed before the next
 round. Use `spec-implement <plan>` and then `spec-review <plan>` when a finding is complex and

@@ -82,6 +82,10 @@ If the plan contains a `🔶 CHECKPOINT CP-N` block, stop when you reach it:
    command to continue.
 3. Wait for explicit confirmation. Do not continue on silence or on an earlier approval.
 
+The only exception is when the user runs the whole plan through `spec-auto`: that lane
+records the checkpoint, verifies the stable state, and continues, reporting every crossed
+checkpoint at the end. This phase never crosses one on its own initiative.
+
 ## 4. Scope boundary
 
 - Modify only files listed under `## Affected modules`. Files marked `(maybe)` need explicit
@@ -141,6 +145,11 @@ Report:
   `NEEDS WORK` verdict and every remaining finding is small and mechanical, name
   `spec-implement-and-review <NNN>` as the shorter alternative: it runs this phase on those
   findings and then the review, without a hand-off.
+
+For a plan with no review yet, `spec-auto <NNN>` is the unattended equivalent of this phase
+followed by `spec-review <NNN>`: it resumes from the first unticked item and reviews at the
+end. It is worth naming when the user works on a remote machine where nobody inspects the
+code between the two phases.
 
 Stop there. Do not review your own work, do not mark it `reviewed`, do not archive it.
 

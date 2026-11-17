@@ -14,9 +14,10 @@ The retrospective plan exists because the user explicitly invoked `spec-fast`; i
 only record this lane creates. Never create a second plan: work that outgrows the lane is
 proposed as a `spec-plan` request and waits for the user.
 
-This is the explicit exception to the one-phase-per-invocation rule in
-[../spec-workflow/SKILL.md](../spec-workflow/SKILL.md). It does not invoke or change the
-contracts of the individual phase skills. All other shared gates and Git rules still apply.
+This is one of the explicit exceptions to the one-phase-per-invocation rule in
+[../spec-workflow/SKILL.md](../spec-workflow/SKILL.md), with `spec-auto` and
+`spec-implement-and-review`. It does not invoke or change the contracts of the individual
+phase skills. All other shared gates and Git rules still apply.
 
 ## 0. Pre-flight
 

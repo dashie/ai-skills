@@ -106,7 +106,9 @@ For `medium`/`high` impact, decide explicitly between one plan and a split:
   integration points. Insert checkpoint blocks (template in the plan format) and set
   `branch_recommended: true`.
 
-Checkpoints are a contract: the implementer stops there and waits. Use them sparingly.
+Checkpoints are a contract: the implementer stops there and waits. Use them sparingly, and
+only when a human decision really is required at that point: `spec-auto` crosses them and
+reports them afterwards, so a plan meant for unattended execution gains nothing from them.
 
 ## 5. Gather context
 
@@ -192,8 +194,9 @@ Then self-check the plan against the definition of ready:
 
 ## 8. Hand off
 
-Report: plan path, classification, impact, dependencies, validation result, and the single
-next command — `spec-implement <NNN>`. Stop there.
+Report: plan path, classification, impact, dependencies, validation result, and the next
+command — `spec-implement <NNN>`, or `spec-auto <NNN>` when the plan is meant to run
+unattended through the review. Stop there.
 
 ## Guardrails
 
@@ -215,4 +218,4 @@ next command — `spec-implement <NNN>`. Stop there.
 
 - A validated tech plan in `draft` status at `<plan_dir>/NNN-<slug>.md`.
 - An optional backlog entry linking the plan, if the repository keeps one.
-- A short report ending with `spec-implement <NNN>`.
+- A short report ending with `spec-implement <NNN>` or `spec-auto <NNN>`.

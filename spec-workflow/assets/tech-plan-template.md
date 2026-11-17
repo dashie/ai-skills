@@ -126,6 +126,8 @@ configuration file.
 > **Verify:** <commands to run>
 >
 > The implementer must stop here, report, and wait for explicit user confirmation.
+> `spec-auto` crosses the checkpoint instead: it verifies the stable state, records it in
+> `## Implementation Notes`, continues, and reports every crossed checkpoint at the end.
 
 ## Security considerations
 

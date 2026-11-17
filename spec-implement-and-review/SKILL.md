@@ -24,9 +24,9 @@ spec-implement-and-review ≡ (spec-implement on the open findings) ──► (s
 ```
 
 This is an explicit, documented exception to the one-phase-per-invocation rule in
-[../spec-workflow/SKILL.md](../spec-workflow/SKILL.md), like `spec-fast`. It does not change
-the contract of any phase skill: it applies the existing ones and stops for the user exactly
-where they would have stopped.
+[../spec-workflow/SKILL.md](../spec-workflow/SKILL.md), like `spec-fast` and `spec-auto`. It
+does not change the contract of any phase skill: it applies the existing ones and stops for
+the user exactly where they would have stopped.
 
 ## 0. Route: is this the right lane?
 
