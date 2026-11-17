@@ -101,6 +101,24 @@ observable result, and how it will be checked.
 
 <…>
 
+### Configuration excerpt (required when the plan adds or changes configuration)
+
+Whenever a step adds, removes, renames, or changes a configuration parameter — key,
+environment variable, CLI flag, YAML/JSON/TOML entry, or default value — show the parameter
+inside a short excerpt of the real configuration file, in its surrounding context. Show
+before/after when the value already exists. A few lines are enough: never paste an entire
+configuration file.
+
+```<format>
+# path/to/config.<ext>
+<unchanged sibling key>
+<the parameter the plan adds or changes>
+<unchanged sibling key>
+```
+
+**Verify:** the option in the excerpt matches the code that reads it and the entry in
+`docs/USER-GUIDE.md`.
+
 ### Checkpoint template (use only when the plan is split into phases)
 
 > **🔶 CHECKPOINT CP-1 — <short label>**

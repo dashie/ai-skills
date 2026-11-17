@@ -156,6 +156,12 @@ Non-negotiables:
 - **Affected modules lists individual files**, grouped, with `(maybe)` for uncertain ones.
   This list is the scope boundary the implementer must respect.
 - **Steps are ordered and independently verifiable**, each with a `Verify:` line.
+- **Configuration changes carry their excerpt.** Whenever the plan adds, removes, renames,
+  or changes a configuration parameter (key, environment variable, CLI flag, YAML/JSON/TOML
+  entry, or default), the affected step **must** include a short excerpt of the real
+  configuration file showing that parameter in its surrounding context — before/after when
+  the value already exists. A snippet of the relevant block is enough; never paste a whole
+  configuration file, and never describe the parameter only in prose.
 - **Verification plan names the exact quality command** from the project profile.
 - **Implementation checklist mirrors the steps** and ends with the mandatory items (open
   questions resolved, quality suite passes, docs updated, Implementation Notes written).
