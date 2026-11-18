@@ -35,9 +35,14 @@ Use `--date` to set the release date; otherwise the helper uses the current UTC 
 
 `close` also writes a `## Closure` section into the plan itself, so the archived record keeps
 the closure facts permanently: close date, version transition, agent, model, tokens, and cost.
-Pass the execution metadata with `--agent`, `--model`, `--tokens`, and `--cost`. Any value
-that is not supplied is recorded as `unknown`; never invent or estimate it. Re-closing a plan
-replaces an existing `## Closure` section instead of appending a second one.
+Pass the execution metadata with `--agent`, `--model`, `--tokens`, and `--cost`, or let the
+harness export `AISPEC_AGENT`, `AISPEC_MODEL`, `AISPEC_TOKENS`, and `AISPEC_COST`; a flag wins
+over the variable. When a value is still missing, the helper asks the optional
+[providers](../spec-workflow/providers/README.md) in the spec-workflow skill, and a known
+harness fills it. Any value no source supplies is recorded as `unknown`; never invent or
+estimate it. A provider that cannot read its data is skipped silently, so the close still
+succeeds. Re-closing a plan replaces an existing `## Closure` section instead of appending a
+second one.
 
 The version file and field must be configured in `.spec-workflow.yml`. The helper supports
 JSON fields (including dotted paths), section/key text formats such as TOML, YAML root keys,
@@ -72,9 +77,10 @@ Deliver, in chat:
 
 Always pass the **Executed by** data to the helper, and always include it in the chat report as
 well, even when the values are unavailable. Take the agent name, model, token count, and cost
-from the session's own usage/accounting data when it is accessible (for example the session
-usage summary or its cost report). For every value the session does not expose, write
-`unknown` instead of omitting the field or estimating it:
+from the session's own usage/accounting data when it is accessible — a harness can export the
+four `AISPEC_*` variables, or a provider in `spec-workflow/providers/` can read it — and for
+every value the session does not expose, write `unknown` instead of omitting the field or
+estimating it:
 
 ```markdown
 aispec plan close 001 --agent "unknown" --model "unknown" --tokens unknown --cost unknown

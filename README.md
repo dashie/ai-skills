@@ -156,6 +156,11 @@ aispec allow ...          # scripts/allow-skills.mjs
 aispec sandbox-scaffold | sandbox-verify | sandbox-uninstall ...
 ```
 
+`aispec plan close` can also fill its execution metadata (agent, model, tokens, cost) from a
+known harness: the optional providers live in `spec-workflow/providers/` and are described in
+its [README](./spec-workflow/providers/README.md). Without a provider, and outside a recognized
+harness, the close command keeps recording `unknown` and always succeeds.
+
 `aispec <verb> --help` prints the verb's own options. Put it on `PATH` once:
 
 ```sh

@@ -6,6 +6,7 @@
 
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
+import { createRequire } from "node:module";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -38,8 +39,8 @@ function report(name, ok, detail) {
   process.stdout.write(`FAIL ${name}\n${detail || ""}\n`);
 }
 
-function run(name, script, args, { cwd = ROOT, expect = 0 } = {}) {
-  const result = spawnSync(process.execPath, [script, ...args], { cwd, encoding: "utf8", env: ENV });
+function run(name, script, args, { cwd = ROOT, expect = 0, env = {} } = {}) {
+  const result = spawnSync(process.execPath, [script, ...args], { cwd, encoding: "utf8", env: { ...ENV, ...env } });
   const ok = result.status === expect;
   report(name, ok, `exit ${result.status}, expected ${expect}\n${result.stdout || ""}${result.stderr || ""}`);
   return result.stdout || "";
@@ -382,6 +383,109 @@ try {
       defaultsArchived.includes("- **Cost**: unknown") &&
       defaultsArchived.includes("- **Version**: unchanged"),
     defaultsArchived,
+  );
+
+  // A harness that cannot pass flags exports the four variables instead.
+  const envPlan = path.join(planRepo, "tech-plans", "003-env.md");
+  fs.writeFileSync(
+    envPlan,
+    defaultsText.replace("title: Defaults plan", "title: Env plan"),
+    "utf8",
+  );
+  fs.appendFileSync(path.join(planRepo, "BACKLOG.md"), "- [ ] Env task (plan: 003-env)\n", "utf8");
+  run("spec-plan: close with execution metadata from the environment", S.specPlan, ["close", "003", "--date", "2026-11-18"], {
+    cwd: planRepo,
+    env: {
+      AISPEC_AGENT: "env-agent",
+      AISPEC_MODEL: "env-model",
+      AISPEC_TOKENS: "4321",
+      AISPEC_COST: "$0.02",
+    },
+  });
+  const envArchived = fs.readFileSync(path.join(planRepo, "tech-plans/archive/003-env.md"), "utf8");
+  report(
+    "spec-plan close reads AISPEC_* when a flag is absent",
+    envArchived.includes("- **Executed by**: env-agent (`env-model`)") &&
+      envArchived.includes("- **Tokens**: 4321") &&
+      envArchived.includes("- **Cost**: $0.02"),
+    envArchived,
+  );
+
+  // A provider recognizes its harness from the environment and supplies the four facts.
+  const providerDb = path.join(work, "opencode.db");
+  const { DatabaseSync } = createRequire(import.meta.url)("node:sqlite");
+  const telemetry = new DatabaseSync(providerDb);
+  telemetry.exec(
+    `CREATE TABLE session (
+       directory TEXT, cost REAL, tokens_input INTEGER, tokens_output INTEGER,
+       tokens_reasoning INTEGER, tokens_cache_read INTEGER, tokens_cache_write INTEGER,
+       agent TEXT, model TEXT, time_updated INTEGER
+     )`,
+  );
+  telemetry
+    .prepare("INSERT INTO session VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+    .run(
+      planRepo,
+      0.125,
+      1000,
+      200,
+      50,
+      300,
+      0,
+      "build",
+      JSON.stringify({ id: "smoke-model", providerID: "smoke" }),
+      Date.now(),
+    );
+  telemetry.close();
+  const providerPlan = path.join(planRepo, "tech-plans", "004-provider.md");
+  fs.writeFileSync(
+    providerPlan,
+    defaultsText.replace("title: Defaults plan", "title: Provider plan"),
+    "utf8",
+  );
+  fs.appendFileSync(path.join(planRepo, "BACKLOG.md"), "- [ ] Provider task (plan: 004-provider)\n", "utf8");
+  run("spec-plan: close with a provider's metadata", S.specPlan, ["close", "004", "--date", "2026-11-18"], {
+    cwd: planRepo,
+    env: {
+      OPENCODE: "1",
+      OPENCODE_DB: providerDb,
+      AISPEC_AGENT: "",
+      AISPEC_MODEL: "",
+      AISPEC_TOKENS: "",
+      AISPEC_COST: "",
+    },
+  });
+  const providerArchived = fs.readFileSync(path.join(planRepo, "tech-plans/archive/004-provider.md"), "utf8");
+  report(
+    "spec-plan close reads a detected provider",
+    providerArchived.includes("- **Executed by**: build (`smoke/smoke-model`)") &&
+      providerArchived.includes("- **Tokens**: 1,550 (input 1,000, output 200, reasoning 50, cache read 300)") &&
+      providerArchived.includes("- **Cost**: $0.125000"),
+    providerArchived,
+  );
+
+  // A provider whose data cannot be read must not fail the close.
+  const brokenPlan = path.join(planRepo, "tech-plans", "005-broken.md");
+  fs.writeFileSync(brokenPlan, defaultsText.replace("title: Defaults plan", "title: Broken plan"), "utf8");
+  fs.appendFileSync(path.join(planRepo, "BACKLOG.md"), "- [ ] Broken task (plan: 005-broken)\n", "utf8");
+  run("spec-plan: close continues when a provider cannot read its data", S.specPlan, ["close", "005", "--date", "2026-11-18"], {
+    cwd: planRepo,
+    env: {
+      OPENCODE: "1",
+      OPENCODE_DB: path.join(work, "missing.db"),
+      AISPEC_AGENT: "",
+      AISPEC_MODEL: "",
+      AISPEC_TOKENS: "",
+      AISPEC_COST: "",
+    },
+  });
+  const brokenArchived = fs.readFileSync(path.join(planRepo, "tech-plans/archive/005-broken.md"), "utf8");
+  report(
+    "spec-plan close keeps unknown when the provider has no data",
+    brokenArchived.includes("- **Executed by**: unknown (`unknown`)") &&
+      brokenArchived.includes("- **Tokens**: unknown") &&
+      brokenArchived.includes("- **Cost**: unknown"),
+    brokenArchived,
   );
 } finally {
   fs.rmSync(work, { recursive: true, force: true });

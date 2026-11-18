@@ -18,6 +18,10 @@
  *   set-status REF STATUS
  *   archive REF
  *   close REF [--date DATE] [--agent A] [--model M] [--tokens N] [--cost C]
+ *
+ * The execution metadata falls back to AISPEC_AGENT, AISPEC_MODEL, AISPEC_TOKENS, and
+ * AISPEC_COST, then to the provider registry in spec-workflow/providers/, so a harness can
+ * supply it without the close command knowing the harness.
  *   config
  *
  * REF is a plan number (007), a number plus slug (007-my-feature), or a path.
@@ -28,6 +32,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
+import { collectExecutionMetadata } from "../providers/index.mjs";
 import { failUsage, parseArgs } from "../../lib/cli.mjs";
 import { globMarkdown, isDir, isFile, moveFile, readText, realpath, writeText } from "../../lib/fsx.mjs";
 import {
@@ -843,15 +848,30 @@ function cmdClose(cfg, values) {
     throw new PlanError("version, changelog, backlog, and plan paths must be distinct");
   }
 
+  // The four facts a closer rarely types by hand: flags win, then the generic `AISPEC_*`
+  // variables, then whichever provider recognizes the harness. Anything left is `unknown`.
+  const metadata = {
+    agent: values.agent || process.env.AISPEC_AGENT,
+    model: values.model || process.env.AISPEC_MODEL,
+    tokens: values.tokens || process.env.AISPEC_TOKENS,
+    cost: values.cost || process.env.AISPEC_COST,
+  };
+  if (!metadata.agent || !metadata.model || !metadata.tokens || !metadata.cost) {
+    const detected = collectExecutionMetadata({ root: cfg.root, env: process.env });
+    metadata.agent ||= detected.agent;
+    metadata.model ||= detected.model;
+    metadata.tokens ||= detected.tokens;
+    metadata.cost ||= detected.cost;
+  }
   const completed = withClosure(
     plan.text.replace(STATUS_LINE_RE, (_match, prefix) => `${prefix}done`),
     closureBlock({
       date: closeDate,
       version: version.newVersion ? `${version.oldVersion} → ${version.newVersion}` : "unchanged",
-      agent: values.agent,
-      model: values.model,
-      tokens: values.tokens,
-      cost: values.cost,
+      agent: metadata.agent,
+      model: metadata.model,
+      tokens: metadata.tokens,
+      cost: metadata.cost,
     }),
   );
   const writes = [
@@ -879,8 +899,8 @@ function cmdClose(cfg, values) {
   writeOut(`changelog: ${changelog ? "updated" : "n/a"}\n`);
   writeOut(`backlog: ${backlog ? "updated" : "n/a"}\n`);
   writeOut(
-    `closure: agent=${closureValue(values.agent)} model=${closureValue(values.model)} ` +
-      `tokens=${closureValue(values.tokens)} cost=${closureValue(values.cost)}\n`,
+    `closure: agent=${closureValue(metadata.agent)} model=${closureValue(metadata.model)} ` +
+      `tokens=${closureValue(metadata.tokens)} cost=${closureValue(metadata.cost)}\n`,
   );
   writeOut(`closed: ${shown}\n`);
   return 0;

@@ -20,8 +20,12 @@ Before archiving, the helper appends a `## Closure` section to the plan:
 - **Cost**: <cost>
 ```
 
-`--agent`, `--model`, `--tokens`, and `--cost` fill the execution fields; every option that is
-omitted is written as `unknown`, so the section is always complete. `--date` sets `Closed`. The
+`--agent`, `--model`, `--tokens`, and `--cost` fill the execution fields; the environment
+variables `AISPEC_AGENT`, `AISPEC_MODEL`, `AISPEC_TOKENS`, and `AISPEC_COST` fill whichever
+flag is absent (a flag wins), and a detected provider in `spec-workflow/providers/` fills what
+both leave open. Every value no source supplies is written as `unknown`, so the section is
+always complete; a provider that cannot read its data is skipped and the close still
+succeeds. `--date` sets `Closed`. The
 version line shows the applied transition, or `unchanged` when the bump is `none`. If the plan
 already carries a `## Closure` section, it is replaced rather than duplicated. The section is
 written to the same file that is archived, so the archived record keeps the metadata.

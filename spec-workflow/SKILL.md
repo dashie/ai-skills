@@ -163,7 +163,7 @@ every skill directory must stay next to `lib/`; do not copy a skill directory on
 | `fingerprint` | Hash of the code state outside the plan dirs; recorded as `**Reviewed state**` and checked by `close` |
 | `set-status REF STATUS` | Update status and move the file between plan directories |
 | `archive REF` | Move a `done` plan to the archive directory |
-| `close REF [--agent A --model M --tokens N --cost C]` | Verify PASS + checklist, bump version, update configured records, write `## Closure`, mark done, archive |
+| `close REF [--agent A --model M --tokens N --cost C]` | Verify PASS + checklist, bump version, update configured records, write `## Closure`, mark done, archive; a missing flag falls back to the matching `AISPEC_*` variable, then to the provider registry in `providers/` |
 
 Resolve `<skill-root>` from this skill's location (for a user-scope install it is
 `~/.copilot/skills/spec-workflow`). If the script is unavailable or cannot perform a
