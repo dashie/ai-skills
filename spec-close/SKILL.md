@@ -21,7 +21,7 @@ spec-review ──reviewed + PASS──► spec-close ──done──► archiv
 Run the deterministic helper command from the repository root:
 
 ```
-aispec plan close <REF> [--date YYYY-MM-DD]
+aispec plan close <REF> [--date YYYY-MM-DD] [--agent A] [--model M] [--tokens N] [--cost C]
 ```
 
 `close` checks the plan is `reviewed`, validates its latest review verdict is PASS, and
@@ -32,6 +32,12 @@ policy from `.spec-workflow.yml` (`plan` uses the plan's `version_bump`), then s
 backlog line containing the plan filename as delivered. If the backlog reference is absent
 or ambiguous, it stops before writing. It does not rerun tests or repeat the code review.
 Use `--date` to set the release date; otherwise the helper uses the current UTC date.
+
+`close` also writes a `## Closure` section into the plan itself, so the archived record keeps
+the closure facts permanently: close date, version transition, agent, model, tokens, and cost.
+Pass the execution metadata with `--agent`, `--model`, `--tokens`, and `--cost`. Any value
+that is not supplied is recorded as `unknown`; never invent or estimate it. Re-closing a plan
+replaces an existing `## Closure` section instead of appending a second one.
 
 The version file and field must be configured in `.spec-workflow.yml`. The helper supports
 JSON fields (including dotted paths), section/key text formats such as TOML, YAML root keys,
@@ -64,17 +70,25 @@ Deliver, in chat:
 - [ ] Tag `<version>` if the project releases from tags
 ```
 
-Always include the **Executed by** line, even when the values are unavailable. Take the agent
-name, model, token count, and cost from the session's own usage/accounting data when it is
-accessible (for example the session usage summary or its cost report). For every value the
-session does not expose, write `unknown` instead of omitting the field or estimating it:
+Always pass the **Executed by** data to the helper, and always include it in the chat report as
+well, even when the values are unavailable. Take the agent name, model, token count, and cost
+from the session's own usage/accounting data when it is accessible (for example the session
+usage summary or its cost report). For every value the session does not expose, write
+`unknown` instead of omitting the field or estimating it:
+
+```markdown
+aispec plan close 001 --agent "unknown" --model "unknown" --tokens unknown --cost unknown
+```
 
 ```markdown
 - **Executed by**: unknown (`unknown`), unknown tokens, unknown cost
 ```
 
-Never infer, approximate, or fabricate usage numbers, and never copy them from another
-session. The line describes the run that executed the plan, not this close run.
+The same rule governs the `## Closure` section the helper writes: omitted options are stored
+as `unknown`, never blank. Never infer, approximate, or fabricate usage numbers, and never
+copy them from another session. The values describe the run that executed the plan, not this
+close run. Do not hand-edit the `## Closure` section to fix a missing value after closing;
+report the gap instead.
 
 The helper never commits, pushes, or tags. The user does.
 
@@ -83,7 +97,8 @@ The helper never commits, pushes, or tags. The user does.
 - Use only `spec-plan.mjs close` for the close operation. If the helper is unavailable,
   stop and report the blocker.
 - Never close without a PASS or with unticked checklist items.
-- Never alter the plan's goals, steps, notes, or verdicts while closing; the file is a record.
+- Never alter the plan's goals, steps, notes, or verdicts while closing; the helper adds only
+  the `## Closure` record, and the rest of the file is a record.
 - Never run `git commit`, `git push`, `git tag`, or any history-changing command unless the
   profile sets `git.allow_writes: true`.
 - Never delete the archived plan, and never renumber it.
@@ -93,6 +108,7 @@ The helper never commits, pushes, or tags. The user does.
 
 ## Outputs
 
-- Version bumped (when applicable); plan marked `done` and moved to the archive directory.
+- Version bumped (when applicable); plan marked `done`, with a `## Closure` section recording
+  date, version transition, agent, model, tokens, and cost; plan moved to the archive directory.
 - A close report with the execution metadata (agent, model, tokens, cost), the suggested
   commit message, and the manual steps left to the user.

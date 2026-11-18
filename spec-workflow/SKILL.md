@@ -57,7 +57,8 @@ user asks for it with `spec-plan` again.
 | Quality suite output | `spec-implement`, `spec-review` | Evidence that a phase really passed |
 | `## Implementation Notes` | `spec-implement` | Deviations, discoveries, extra scope |
 | `## Review Notes` | `spec-review` | Verdict, gaps, suggested commit message |
-| Close report (chat only) | `spec-close` | Version bump, archive location, execution metadata (agent, model, tokens, cost), commit message |
+| `## Closure` (in the plan) | `spec-close` | Close date, version transition, agent, model, tokens, cost (`unknown` when unavailable) |
+| Close report (chat only) | `spec-close` | Version bump, archive location, execution metadata, commit message |
 
 ## Package layout
 
@@ -162,7 +163,7 @@ every skill directory must stay next to `lib/`; do not copy a skill directory on
 | `fingerprint` | Hash of the code state outside the plan dirs; recorded as `**Reviewed state**` and checked by `close` |
 | `set-status REF STATUS` | Update status and move the file between plan directories |
 | `archive REF` | Move a `done` plan to the archive directory |
-| `close REF` | Verify PASS + checklist, bump version, update configured records, mark done, archive |
+| `close REF [--agent A --model M --tokens N --cost C]` | Verify PASS + checklist, bump version, update configured records, write `## Closure`, mark done, archive |
 
 Resolve `<skill-root>` from this skill's location (for a user-scope install it is
 `~/.copilot/skills/spec-workflow`). If the script is unavailable or cannot perform a

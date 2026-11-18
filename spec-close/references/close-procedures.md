@@ -1,9 +1,30 @@
 # Deterministic Close
 
-`aispec plan close <REF> [--date YYYY-MM-DD]` is the only supported close operation. It
-verifies the recorded PASS and complete implementation checklist, applies the configured
-version bump, updates configured changelog/backlog records, sets the plan status to `done`,
-and archives it. It does not rerun project tests or edit architecture or decision documents.
+`aispec plan close <REF> [--date YYYY-MM-DD] [--agent A] [--model M] [--tokens N] [--cost C]`
+is the only supported close operation. It verifies the recorded PASS and complete implementation
+checklist, applies the configured version bump, updates configured changelog/backlog records,
+writes a `## Closure` section, sets the plan status to `done`, and archives it. It does not
+rerun project tests or edit architecture or decision documents.
+
+## Closure record
+
+Before archiving, the helper appends a `## Closure` section to the plan:
+
+```markdown
+## Closure
+
+- **Closed**: 2026-11-18
+- **Version**: 1.2.3 → 1.2.4
+- **Executed by**: <agent> (`<model>`)
+- **Tokens**: <tokens>
+- **Cost**: <cost>
+```
+
+`--agent`, `--model`, `--tokens`, and `--cost` fill the execution fields; every option that is
+omitted is written as `unknown`, so the section is always complete. `--date` sets `Closed`. The
+version line shows the applied transition, or `unchanged` when the bump is `none`. If the plan
+already carries a `## Closure` section, it is replaced rather than duplicated. The section is
+written to the same file that is archived, so the archived record keeps the metadata.
 
 ## Version configuration
 
@@ -46,4 +67,5 @@ delivered marker with the version and archived plan link. Missing or ambiguous m
 before any files are written; absent or unconfigured documentation paths are skipped.
 
 The helper changes only the configured version field, configured changelog/backlog entries,
-the plan's status, and the plan's location. It does not write Git history.
+the plan's `status` and `## Closure` section, and the plan's location. It does not write Git
+history.

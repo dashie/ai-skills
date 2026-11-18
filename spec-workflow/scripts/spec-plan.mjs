@@ -17,6 +17,7 @@
  *   fingerprint
  *   set-status REF STATUS
  *   archive REF
+ *   close REF [--date DATE] [--agent A] [--model M] [--tokens N] [--cost C]
  *   config
  *
  * REF is a plan number (007), a number plus slug (007-my-feature), or a path.
@@ -31,6 +32,7 @@ import { failUsage, parseArgs } from "../../lib/cli.mjs";
 import { globMarkdown, isDir, isFile, moveFile, readText, realpath, writeText } from "../../lib/fsx.mjs";
 import {
   FRONTMATTER_RE,
+  SECTION_RE,
   checklistItems,
   matchAll,
   sectionLookup,
@@ -59,6 +61,7 @@ const CHECKLIST_MANDATORY = ["open questions resolved", "quality suite", "implem
 const STATUS_LINE_RE = /^(status:[ \t]*).*$/m;
 const IMPLEMENTATION_NOTES_RE = /^## Implementation Notes/m;
 const REVIEW_NOTES_RE = /^## Review Notes/m;
+const CLOSURE_HEADING_RE = /^##(?!#)\s+Closure\s*$/;
 
 class PlanError extends Error {}
 
@@ -747,6 +750,39 @@ function updateChangelog(original, entry, date) {
   return lines.join(eol);
 }
 
+function closureValue(raw) {
+  const text = String(raw ?? "").replace(/\s+/g, " ").trim();
+  return text === "" ? "unknown" : text;
+}
+
+function closureBlock({ date, version, agent, model, tokens, cost }) {
+  const executedBy = `${closureValue(agent)} (\`${closureValue(model)}\`)`;
+  return [
+    "## Closure",
+    "",
+    `- **Closed**: ${date}`,
+    `- **Version**: ${version}`,
+    `- **Executed by**: ${executedBy}`,
+    `- **Tokens**: ${closureValue(tokens)}`,
+    `- **Cost**: ${closureValue(cost)}`,
+  ];
+}
+
+/** Record the closure metadata, replacing a previous `## Closure` section. */
+function withClosure(original, block) {
+  const eol = original.includes("\r\n") ? "\r\n" : "\n";
+  const lines = original.split(/\r?\n/);
+  const start = lines.findIndex((line) => CLOSURE_HEADING_RE.test(line));
+  if (start !== -1) {
+    let end = start + 1;
+    while (end < lines.length && !SECTION_RE.test(lines[end])) end += 1;
+    lines.splice(start, end - start);
+  }
+  while (lines.length && lines[lines.length - 1] === "") lines.pop();
+  lines.push("", ...block);
+  return `${lines.join(eol)}${eol}`;
+}
+
 function updateBacklog(original, plan, archivePath, backlogPath, version) {
   const lines = original.split(/\r?\n/);
   const matches = [];
@@ -807,7 +843,17 @@ function cmdClose(cfg, values) {
     throw new PlanError("version, changelog, backlog, and plan paths must be distinct");
   }
 
-  const completed = plan.text.replace(STATUS_LINE_RE, (_match, prefix) => `${prefix}done`);
+  const completed = withClosure(
+    plan.text.replace(STATUS_LINE_RE, (_match, prefix) => `${prefix}done`),
+    closureBlock({
+      date: closeDate,
+      version: version.newVersion ? `${version.oldVersion} → ${version.newVersion}` : "unchanged",
+      agent: values.agent,
+      model: values.model,
+      tokens: values.tokens,
+      cost: values.cost,
+    }),
+  );
   const writes = [
     ...(version.text === null ? [] : [[cfg.versionFile, version.text]]),
     ...(changelogText === null ? [] : [[changelog.path, changelogText]]),
@@ -832,6 +878,10 @@ function cmdClose(cfg, values) {
   }
   writeOut(`changelog: ${changelog ? "updated" : "n/a"}\n`);
   writeOut(`backlog: ${backlog ? "updated" : "n/a"}\n`);
+  writeOut(
+    `closure: agent=${closureValue(values.agent)} model=${closureValue(values.model)} ` +
+      `tokens=${closureValue(values.tokens)} cost=${closureValue(values.cost)}\n`,
+  );
   writeOut(`closed: ${shown}\n`);
   return 0;
 }
@@ -874,7 +924,13 @@ const SPEC = {
     archive: { description: "archive a done plan", options: {}, positionals: [{ name: "ref" }] },
     close: {
       description: "bump the version, update configured records, and archive a reviewed plan",
-      options: { date: { type: "string", description: "release date (YYYY-MM-DD)" } },
+      options: {
+        date: { type: "string", description: "release date (YYYY-MM-DD)" },
+        agent: { type: "string", description: "agent that executed the plan (Closure section)" },
+        model: { type: "string", description: "model that executed the plan (Closure section)" },
+        tokens: { type: "string", description: "tokens spent executing the plan (Closure section)" },
+        cost: { type: "string", description: "cost of executing the plan (Closure section)" },
+      },
       positionals: [{ name: "ref" }],
     },
     fingerprint: { description: "print the hash of the current code state (git)", options: {}, positionals: [] },

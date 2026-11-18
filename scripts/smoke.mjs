@@ -322,7 +322,20 @@ try {
     "ambiguous backlog match caused partial close writes",
   );
   fs.writeFileSync(path.join(planRepo, "BACKLOG.md"), "- [ ] Smoke task (plan: 001-smoke)\n", "utf8");
-  run("spec-plan: close updates records and archives", S.specPlan, ["close", "001", "--date", "2026-11-17"], { cwd: planRepo });
+  run("spec-plan: close updates records and archives", S.specPlan, [
+    "close",
+    "001",
+    "--date",
+    "2026-11-17",
+    "--agent",
+    "smoke-agent",
+    "--model",
+    "smoke-model",
+    "--tokens",
+    "1234",
+    "--cost",
+    "0.01 USD",
+  ], { cwd: planRepo });
   const archivedPlan = path.join(planRepo, "tech-plans/archive/001-smoke.md");
   const changelog = fs.readFileSync(path.join(planRepo, "CHANGELOG.md"), "utf8");
   const backlog = fs.readFileSync(path.join(planRepo, "BACKLOG.md"), "utf8");
@@ -335,6 +348,40 @@ try {
       backlog.includes("[x] Smoke task") &&
       backlog.includes("Delivered in 1.2.4"),
     `version: ${fs.readFileSync(path.join(planRepo, "package.json"), "utf8")}\nchangelog:\n${changelog}\nbacklog:\n${backlog}`,
+  );
+  const archivedText = fs.readFileSync(archivedPlan, "utf8");
+  report(
+    "spec-plan close records the execution metadata in the archived plan",
+    /## Closure\n/.test(archivedText) &&
+      archivedText.includes("- **Closed**: 2026-11-17") &&
+      archivedText.includes("- **Version**: 1.2.3 → 1.2.4") &&
+      archivedText.includes("- **Executed by**: smoke-agent (`smoke-model`)") &&
+      archivedText.includes("- **Tokens**: 1234") &&
+      archivedText.includes("- **Cost**: 0.01 USD"),
+    archivedText,
+  );
+
+  // A second close without metadata must still record the section, with unknown values.
+  const defaultsPlan = path.join(planRepo, "tech-plans", "002-defaults.md");
+  const defaultsText = archivedText
+    .replace("title: Smoke plan", "title: Defaults plan")
+    .replace("status: done", "status: reviewed")
+    .replace("version_bump: patch", "version_bump: none")
+    .replace(/^- \*\*Reviewed state\*\*:.*\n/m, "")
+    .replace(/\n## Closure[\s\S]*$/, "\n");
+  fs.writeFileSync(defaultsPlan, defaultsText, "utf8");
+  fs.appendFileSync(path.join(planRepo, "BACKLOG.md"), "- [ ] Defaults task (plan: 002-defaults)\n", "utf8");
+  run("spec-plan: close without execution metadata", S.specPlan, ["close", "002", "--date", "2026-11-18"], {
+    cwd: planRepo,
+  });
+  const defaultsArchived = fs.readFileSync(path.join(planRepo, "tech-plans/archive/002-defaults.md"), "utf8");
+  report(
+    "spec-plan close defaults missing execution metadata to unknown",
+    defaultsArchived.includes("- **Executed by**: unknown (`unknown`)") &&
+      defaultsArchived.includes("- **Tokens**: unknown") &&
+      defaultsArchived.includes("- **Cost**: unknown") &&
+      defaultsArchived.includes("- **Version**: unchanged"),
+    defaultsArchived,
   );
 } finally {
   fs.rmSync(work, { recursive: true, force: true });
