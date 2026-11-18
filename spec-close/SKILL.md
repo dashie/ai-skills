@@ -53,6 +53,7 @@ Deliver, in chat:
 - **Status**: done, archived at `<path>`
 - **Version**: <old> → <new>, or unchanged
 - **Changelog / backlog**: updated or n/a
+- **Executed by**: <agent name> (`<model>`), <tokens> tokens, <cost>
 
 ### Commit message
 `<type>(<scope>): <description>`
@@ -62,6 +63,18 @@ Deliver, in chat:
 - [ ] Push and open the merge request / pull request
 - [ ] Tag `<version>` if the project releases from tags
 ```
+
+Always include the **Executed by** line, even when the values are unavailable. Take the agent
+name, model, token count, and cost from the session's own usage/accounting data when it is
+accessible (for example the session usage summary or its cost report). For every value the
+session does not expose, write `unknown` instead of omitting the field or estimating it:
+
+```markdown
+- **Executed by**: unknown (`unknown`), unknown tokens, unknown cost
+```
+
+Never infer, approximate, or fabricate usage numbers, and never copy them from another
+session. The line describes the run that executed the plan, not this close run.
 
 The helper never commits, pushes, or tags. The user does.
 
@@ -81,4 +94,5 @@ The helper never commits, pushes, or tags. The user does.
 ## Outputs
 
 - Version bumped (when applicable); plan marked `done` and moved to the archive directory.
-- A close report with the suggested commit message and the manual steps left to the user.
+- A close report with the execution metadata (agent, model, tokens, cost), the suggested
+  commit message, and the manual steps left to the user.

@@ -57,7 +57,7 @@ user asks for it with `spec-plan` again.
 | Quality suite output | `spec-implement`, `spec-review` | Evidence that a phase really passed |
 | `## Implementation Notes` | `spec-implement` | Deviations, discoveries, extra scope |
 | `## Review Notes` | `spec-review` | Verdict, gaps, suggested commit message |
-| Close report (chat only) | `spec-close` | Version bump, archive location, commit message |
+| Close report (chat only) | `spec-close` | Version bump, archive location, execution metadata (agent, model, tokens, cost), commit message |
 
 ## Package layout
 
